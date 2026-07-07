@@ -75,6 +75,16 @@ export default function Dashboard() {
 
   const getInitials = (name) => name ? name.substring(0, 2).toUpperCase() : "ST";
 
+  const examFolders = [
+    { name: "1st Mid Term", icon: "📁" },
+    { name: "Quarterly Exam", icon: "📁" },
+    { name: "2nd Mid Term", icon: "📁" },
+    { name: "Half Yearly Exam", icon: "📁" },
+    { name: "3rd Mid Term", icon: "📁" },
+    { name: "Revision Exams", icon: "📁" },
+    { name: "Annual / Public Exam", icon: "🎓" }
+  ];
+
   return (
     <div className={styles.dashboardContainer}>
       
@@ -104,18 +114,13 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <section className={styles.reportSection}>
-            <h2 className={styles.sectionHeader}>Monthly Assessment Marks</h2>
-            <div className={styles.marksList}>
-              {marks.length === 0 ? <p>No marks recorded yet.</p> : marks.map((mark, index) => (
-                <div key={index} className={styles.markItem}>
-                  <div style={{ flex: 1 }}>
-                    <div className={styles.subjectName}>{mark.subject}</div>
-                    <div className={styles.progressBarContainer}>
-                      <div className={styles.progressBar} style={{ width: `${(mark.score / mark.max) * 100}%` }}></div>
-                    </div>
-                  </div>
-                  <div className={styles.score}>{mark.score} <span style={{fontSize: '0.875rem', color: 'var(--text-secondary)'}}>/{mark.max}</span></div>
+          <section className={styles.foldersSection}>
+            <h2 className={styles.sectionHeader}>{userData?.class ? `Class ${userData.class} Exams` : 'Exams'}</h2>
+            <div className={styles.foldersGrid}>
+              {examFolders.map((exam, index) => (
+                <div key={index} className={styles.folderCard}>
+                  <div className={styles.folderIcon}>{exam.icon}</div>
+                  <div className={styles.folderName}>{exam.name}</div>
                 </div>
               ))}
             </div>
