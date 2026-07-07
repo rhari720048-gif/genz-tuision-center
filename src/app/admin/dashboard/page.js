@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { LayoutDashboard, Users, ClipboardList, Banknote, BookOpen, FileQuestion, Bell, LogOut, Search, UserCircle, PlusCircle, FileUp, Download, Menu, X, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from './page.module.css';
+import toast from 'react-hot-toast';
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -23,6 +24,7 @@ export default function AdminDashboard() {
   const [searchQuiz, setSearchQuiz] = useState('');
   const [searchNotif, setSearchNotif] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const router = useRouter();
 
   const sendEmailNotification = async (to, subject, html) => {
@@ -100,6 +102,7 @@ export default function AdminDashboard() {
   const [stName, setStName] = useState('');
   const [stEmail, setStEmail] = useState('');
   const [stPassword, setStPassword] = useState('');
+  const [showStPassword, setShowStPassword] = useState(false);
   const [stClass, setStClass] = useState('10');
   const [stDept, setStDept] = useState('General');
   const [stSubjects, setStSubjects] = useState('Tamil, English, Maths, Science, Social Science');
@@ -163,7 +166,7 @@ export default function AdminDashboard() {
   // CSV Parser helper
   const handleCsvUpload = async (e) => {
     e.preventDefault();
-    if (!bulkCsv) return alert("Please select a CSV file.");
+    if (!bulkCsv) return toast.error("Please select a CSV file.");
     setIsUploadingCsv(true);
 
     const reader = new FileReader();
@@ -203,7 +206,7 @@ export default function AdminDashboard() {
         }
       }
       
-      alert(`Bulk Upload Complete.\nSuccess: ${successCount}\nFailed: ${errorCount}`);
+      toast.error(`Bulk Upload Complete.\nSuccess: ${successCount}\nFailed: ${errorCount}`);
       setBulkCsv(null);
       setIsUploadingCsv(false);
       fetchStudents();
@@ -231,15 +234,15 @@ export default function AdminDashboard() {
       try {
         await updateDoc(doc(db, "users", editSt.id), { name: stName, email: stEmail, class: stClass, department: stClass === '10' ? 'General' : stDept, subjects: stSubjects });
         setEditSt(null);
-        alert("Student Updated");
+        toast.success("Student Updated");
       } catch (err) {
         console.error("Error updating student:", err);
-        alert("Error updating student: " + err.message);
+        toast.error("Error updating student: " + err.message);
       } finally {
         setIsRegistering(false);
       }
     } else {
-      if(stPassword.length < 6) return alert("Password must be at least 6 characters.");
+      if(stPassword.length < 6) return toast.success("Password must be at least 6 characters.");
       setIsRegistering(true);
       try {
         const secondaryApp = getApps().find(a => a.name === "Secondary") || initializeApp(firebaseConfig, "Secondary");
@@ -258,7 +261,7 @@ export default function AdminDashboard() {
           `<h3>Hello ${stName},</h3><p>Your student account has been created successfully.</p><p><b>Login Email:</b> ${stEmail}<br/><b>Password:</b> ${stPassword}</p><p>Please login to your portal to see your dashboard.</p>`
         );
 
-        alert("Student Securely Created & Welcome Email Sent!");
+        toast.success("Student Securely Created & Welcome Email Sent!");
       } catch (err) {
         if (err.code === 'auth/email-already-in-use') {
           try {
@@ -275,17 +278,17 @@ export default function AdminDashboard() {
               "Account Restored - GenZ Tuition Center!", 
               `<h3>Hello ${stName},</h3><p>Your student account has been restored successfully.</p><p><b>Login Email:</b> ${stEmail}<br/><b>Password:</b> ${stPassword}</p>`
             );
-            alert("This student was previously deleted from the database but remained in Authentication. We have RESTORED their database record successfully!");
+            toast.success("This student was previously deleted from the database but remained in Authentication. We have RESTORED their database record successfully!");
           } catch(recoverErr) {
-            return alert("Error: This email is already registered in Firebase Authentication, but the password provided is incorrect, so we could not restore it. To completely remove it, please go to Firebase Console -> Authentication -> Users and delete this email manually.");
+            return toast.error("Error: This email is already registered in Firebase Authentication, but the password provided is incorrect, so we could not restore it. To completely remove it, please go to Firebase Console -> Authentication -> Users and delete this email manually.");
           }
         } else if (err.code === 'auth/invalid-email') {
-          return alert("Error: Invalid email format.");
+          return toast.error("Error: Invalid email format.");
         } else if (err.code === 'auth/weak-password') {
-          return alert("Error: Password is too weak. Please use at least 6 characters.");
+          return toast.error("Error: Password is too weak. Please use at least 6 characters.");
         } else {
           console.error(err);
-          return alert(err.message);
+          return toast.error(err.message);
         }
       } finally {
         setIsRegistering(false);
@@ -297,8 +300,8 @@ export default function AdminDashboard() {
   const handleBatchAttendance = async (e) => {
     e.preventDefault();
     const targetStudents = students.filter(s => s.class === attBatchClass);
-    if (targetStudents.length === 0) return alert("No students in this class!");
-    if (!attBatchDate) return alert("Please select a date!");
+    if (targetStudents.length === 0) return toast.success("No students in this class!");
+    if (!attBatchDate) return toast.error("Please select a date!");
     
     try {
       const batch = writeBatch(db);
@@ -308,18 +311,18 @@ export default function AdminDashboard() {
         batch.set(attRef, { studentId: st.id, date: attBatchDate, status: isPresent ? 'Present' : 'Absent' });
       });
       await batch.commit();
-      alert("Batch Attendance Saved for Class " + attBatchClass);
+      toast.success("Batch Attendance Saved for Class " + attBatchClass);
       setAttBatchStatus({});
     } catch(err) {
-      alert("Error saving attendance");
+      toast.error("Error saving attendance");
     }
   };
 
   const handleBulkMarks = async (e) => {
     e.preventDefault();
     const targetStudents = students.filter(s => s.class === markBatchClass);
-    if (targetStudents.length === 0) return alert("No students in this class!");
-    if (!markBatchSubject) return alert("Please enter a subject!");
+    if (targetStudents.length === 0) return toast.success("No students in this class!");
+    if (!markBatchSubject) return toast.error("Please enter a subject!");
     
     try {
       const batch = writeBatch(db);
@@ -331,10 +334,10 @@ export default function AdminDashboard() {
         }
       });
       await batch.commit();
-      alert("Bulk Marks Saved for Class " + markBatchClass);
+      toast.success("Bulk Marks Saved for Class " + markBatchClass);
       setMarkBatchScores({});
     } catch(err) {
-      alert("Error saving marks");
+      toast.error("Error saving marks");
     }
   };
 
@@ -343,7 +346,7 @@ export default function AdminDashboard() {
     if (editMat) {
       await updateDoc(doc(db, "materials", editMat.id), { title: matTitle, fileUrl: matUrl, class: matClass, department: matClass === '10' ? 'General' : matDept, subject: matSubject, type: matType });
       setEditMat(null);
-      alert("Material Updated");
+      toast.success("Material Updated");
     } else {
       await addDoc(collection(db, "materials"), { title: matTitle, fileUrl: matUrl, class: matClass, department: matClass === '10' ? 'General' : matDept, subject: matSubject, type: matType, uploadedAt: serverTimestamp() });
       await addDoc(collection(db, "notifications"), { title: `New Material: ${matTitle}`, message: `A new ${matType} for ${matSubject} has been uploaded.`, createdAt: serverTimestamp() });
@@ -371,7 +374,7 @@ export default function AdminDashboard() {
         );
       });
 
-      alert("Material Uploaded & Notification Auto-Sent!");
+      toast.success("Material Uploaded & Notification Auto-Sent!");
     }
     setMatTitle(''); setMatUrl(''); fetchMaterials(); fetchNotifications();
   };
@@ -381,11 +384,11 @@ export default function AdminDashboard() {
     if (editQuiz) {
       await updateDoc(doc(db, "quizzes", editQuiz.id), { title: quizTitle, class: quizClass, timePerQ: Number(quizTime) });
       setEditQuiz(null);
-      alert("Quiz Updated");
+      toast.success("Quiz Updated");
     } else {
       await addDoc(collection(db, "quizzes"), { title: quizTitle, class: quizClass, timePerQ: Number(quizTime), createdAt: serverTimestamp(), questions: [] });
       await addDoc(collection(db, "notifications"), { title: `New Quiz: ${quizTitle}`, message: `A new quiz has been created for Class ${quizClass}. Check your portal!`, createdAt: serverTimestamp() });
-      alert("Quiz Created & Notification Auto-Sent!");
+      toast.success("Quiz Created & Notification Auto-Sent!");
     }
     setQuizTitle(''); fetchQuizzes(); fetchNotifications();
   };
@@ -395,7 +398,7 @@ export default function AdminDashboard() {
     if (editNotif) {
       await updateDoc(doc(db, "notifications", editNotif.id), { title: notifTitle, message: notifMsg });
       setEditNotif(null);
-      alert("Notification Updated");
+      toast.success("Notification Updated");
     } else {
       await addDoc(collection(db, "notifications"), { title: notifTitle, message: notifMsg, createdAt: serverTimestamp() });
       
@@ -408,14 +411,14 @@ export default function AdminDashboard() {
         );
       });
 
-      alert("Notification Sent & Emailed to All Students!");
+      toast.success("Notification Sent & Emailed to All Students!");
     }
     setNotifTitle(''); setNotifMsg(''); fetchNotifications();
   };
 
   const handleFeeUpdate = async (e) => {
     e.preventDefault();
-    if(!feeStudentId) return alert("Select a student");
+    if(!feeStudentId) return toast.success("Select a student");
     try {
       await addDoc(collection(db, "fees"), { 
         studentId: feeStudentId, 
@@ -436,18 +439,18 @@ export default function AdminDashboard() {
         );
       }
 
-      alert("Fee Status Updated & Email Sent!");
+      toast.success("Fee Status Updated & Email Sent!");
       fetchFees();
     } catch(err) {
       console.error(err);
-      alert("Failed to update fees");
+      toast.error("Failed to update fees");
     }
   };
 
   const handleBulkFees = async (e) => {
     e.preventDefault();
     const targetStudents = bulkFeeClass === 'All' ? students : students.filter(s => s.class === bulkFeeClass);
-    if (targetStudents.length === 0) return alert("No students found.");
+    if (targetStudents.length === 0) return toast.success("No students found.");
     if (!confirm(`Generate pending fees for ${targetStudents.length} students for ${feeMonth}?`)) return;
     
     try {
@@ -457,17 +460,17 @@ export default function AdminDashboard() {
         batch.set(feeRef, { studentId: st.id, month: feeMonth, status: 'Pending', amount: Number(feeAmount), dueDate: feeDueDate, updatedAt: serverTimestamp() });
       });
       await batch.commit();
-      alert(`Successfully generated fees for ${targetStudents.length} students!`);
+      toast.success(`Successfully generated fees for ${targetStudents.length} students!`);
       fetchFees();
     } catch(err) {
       console.error(err);
-      alert("Error generating bulk fees.");
+      toast.error("Error generating bulk fees.");
     }
   };
 
   const handleSendFeeReminders = async () => {
     const pendingFees = fees.filter(f => f.status === 'Pending');
-    if (pendingFees.length === 0) return alert("No pending fees found!");
+    if (pendingFees.length === 0) return toast.success("No pending fees found!");
     if (!confirm(`Send reminders to ${pendingFees.length} students with pending fees?`)) return;
     
     try {
@@ -486,11 +489,11 @@ export default function AdminDashboard() {
         }
       });
       await batch.commit();
-      alert(`Sent ${count} fee reminders successfully!`);
+      toast.success(`Sent ${count} fee reminders successfully!`);
       fetchNotifications();
     } catch(err) {
       console.error(err);
-      alert("Error sending reminders.");
+      toast.error("Error sending reminders.");
     }
   };
 
@@ -524,14 +527,14 @@ export default function AdminDashboard() {
       
       if (count > 0) {
         await batch.commit();
-        alert(`Sent low attendance warnings to ${count} students.`);
+        toast.success(`Sent low attendance warnings to ${count} students.`);
         fetchNotifications();
       } else {
-        alert("All students have satisfactory attendance (>=75%).");
+        toast.success("All students have satisfactory attendance (>=75%).");
       }
     } catch(err) {
       console.error(err);
-      alert("Error scanning attendance.");
+      toast.error("Error scanning attendance.");
     }
   };
 
@@ -573,7 +576,7 @@ export default function AdminDashboard() {
     setActiveQuizForQuestions({...activeQuizForQuestions, questions: updatedQuestions});
     fetchQuizzes();
     setQText(''); setQOptA(''); setQOptB(''); setQOptC(''); setQOptD(''); setQCorrect('A');
-    alert("Question Added!");
+    toast.success("Question Added!");
   };
 
   const handleDeleteQuestion = async (index) => {
@@ -596,8 +599,8 @@ export default function AdminDashboard() {
     <div className={styles.layoutContainer}>
       {/* SIDEBAR */}
       <aside className={`${styles.sidebar} ${isMobileMenuOpen ? styles.open : ''}`}>
-        <div className={styles.brand} style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
-          GenZ CRM
+        <div className={styles.brand} style={{display:'flex', justifyContent:'space-between', alignItems:'center', fontSize: '1.5rem'}}>
+          GenZ Tuition CRM
           <button className={styles.hamburgerBtn} onClick={() => setIsMobileMenuOpen(false)} style={{display: isMobileMenuOpen ? 'block' : 'none'}}>
             <X size={24} />
           </button>
@@ -622,14 +625,27 @@ export default function AdminDashboard() {
             <Menu size={24} />
           </button>
           <div className={styles.headerActions}>
-            <div className={styles.profileBadge}>
-              <UserCircle size={32} />
-              <div className={styles.profileText}>
-                <span className={styles.profileName}>Admin Portal</span>
-                <span className={styles.profileRole}>System Admin</span>
-              </div>
+            <div className={styles.profileMenuContainer}>
+              <button 
+                className={styles.avatarBtn} 
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+              >
+                A
+              </button>
+              
+              {dropdownOpen && (
+                <div className={styles.dropdownMenu}>
+                  <div className={styles.dropdownInfo}>
+                    <p className={styles.profileName} style={{display:'block'}}>Admin Portal</p>
+                    <p className={styles.profileRole} style={{display:'block'}}>System Admin</p>
+                  </div>
+                  <div className={styles.dropdownDivider}></div>
+                  <button className={styles.dropdownLogout} onClick={async () => { sessionStorage.removeItem('adminSession'); await signOut(auth); toast.success('Logged out successfully'); router.push('/admin/login'); }}>
+                     Logout
+                  </button>
+                </div>
+              )}
             </div>
-            <button className={styles.logoutBtn} onClick={async () => { sessionStorage.removeItem('adminSession'); await signOut(auth); router.push('/admin/login'); }}><LogOut size={18}/></button>
           </div>
         </header>
 
@@ -640,28 +656,28 @@ export default function AdminDashboard() {
               <motion.div key="overview" initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} exit={{opacity:0, y:-20}} transition={{duration:0.3}}>
                 <div className={styles.pageHeader}><h1 className={styles.pageTitle}>Dashboard Overview</h1></div>
                 <div className={styles.statsGrid}>
-                  <motion.div whileHover={{scale:1.02}} className={styles.statCard}>
+                  <motion.div whileHover={{scale:1.02, y: -4}} className={styles.statCard}>
                     <div className={styles.statIcon}><Users size={24} /></div>
                     <div className={styles.statInfo}>
                       <span className={styles.statLabel}>Total Students</span>
                       <span className={styles.statValue}>{students.length}</span>
                     </div>
                   </motion.div>
-                  <motion.div whileHover={{scale:1.02}} className={styles.statCard}>
+                  <motion.div whileHover={{scale:1.02, y: -4}} className={styles.statCard}>
                     <div className={styles.statIcon}><BookOpen size={24} /></div>
                     <div className={styles.statInfo}>
                       <span className={styles.statLabel}>Study Materials</span>
                       <span className={styles.statValue}>{materials.length}</span>
                     </div>
                   </motion.div>
-                  <motion.div whileHover={{scale:1.02}} className={styles.statCard}>
+                  <motion.div whileHover={{scale:1.02, y: -4}} className={styles.statCard}>
                     <div className={styles.statIcon}><FileQuestion size={24} /></div>
                     <div className={styles.statInfo}>
                       <span className={styles.statLabel}>Active Quizzes</span>
                       <span className={styles.statValue}>{quizzes.length}</span>
                     </div>
                   </motion.div>
-                  <motion.div whileHover={{scale:1.02}} className={styles.statCard}>
+                  <motion.div whileHover={{scale:1.02, y: -4}} className={styles.statCard}>
                     <div className={styles.statIcon}><Bell size={24} /></div>
                     <div className={styles.statInfo}>
                       <span className={styles.statLabel}>Notifications Sent</span>
@@ -694,7 +710,30 @@ export default function AdminDashboard() {
                 <div className={styles.inputGroup}><label className={styles.label}>Full Name</label><input className={styles.input} value={stName} onChange={e=>setStName(e.target.value)} required /></div>
                 <div className={styles.inputGroup}><label className={styles.label}>Email Address</label><input className={styles.input} type="email" value={stEmail} onChange={e=>setStEmail(e.target.value)} required /></div>
                 {!editSt && (
-                  <div className={styles.inputGroup}><label className={styles.label}>Set Password</label><input className={styles.input} type="password" value={stPassword} onChange={e=>setStPassword(e.target.value)} required /></div>
+                  <div className={styles.inputGroup}>
+                    <label className={styles.label}>Set Password</label>
+                    <div style={{ position: 'relative' }}>
+                      <input 
+                        className={styles.input} 
+                        type={showStPassword ? "text" : "password"} 
+                        style={{ width: '100%', paddingRight: '40px' }}
+                        value={stPassword} 
+                        onChange={e=>setStPassword(e.target.value)} 
+                        required 
+                      />
+                      <button 
+                        type="button"
+                        onClick={() => setShowStPassword(!showStPassword)}
+                        style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}
+                      >
+                        {showStPassword ? (
+                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                        ) : (
+                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        )}
+                      </button>
+                    </div>
+                  </div>
                 )}
                 <div className={styles.inputGroup}>
                   <label className={styles.label}>Class</label>
@@ -747,9 +786,9 @@ export default function AdminDashboard() {
                         if(confirm(`Send a password reset email to ${s.email}?`)) {
                           try {
                             await sendPasswordResetEmail(auth, s.email);
-                            alert(`Password reset email sent to ${s.email}`);
+                            toast.success(`Password reset email sent to ${s.email}`);
                           } catch(err) {
-                            alert(err.message);
+                            toast.error(err.message);
                           }
                         }
                       }}>Reset Pass</button>
@@ -952,7 +991,7 @@ export default function AdminDashboard() {
                         {[...new Set(students.map(s => s.class))].map(c => <option key={c} value={c}>Class {c}</option>)}
                       </select>
                     </div>
-                    <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem'}}>
+                    <div className={styles.formGrid} style={{ gap: '1rem' }}>
                       <div className={styles.inputGroup}>
                         <label className={styles.label}>Month</label>
                         <select className={styles.input} value={feeMonth} onChange={e=>setFeeMonth(e.target.value)}>

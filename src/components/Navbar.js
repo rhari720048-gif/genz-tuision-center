@@ -4,23 +4,40 @@ import { usePathname, useRouter } from 'next/navigation';
 import { LayoutDashboard, BookOpen, FileQuestion, Trophy } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from '@/lib/firebase';
 import styles from './Navbar.module.css';
+import toast from 'react-hot-toast';
 
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const [user, setUser] = useState(null);
+  const [userData, setUserData] = useState(null);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
+      if (currentUser) {
+        try {
+          const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+          if (userDoc.exists()) {
+            setUserData(userDoc.data());
+          }
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+        }
+      } else {
+        setUserData(null);
+      }
     });
     return () => unsubscribe();
   }, []);
 
   const handleLogout = async () => {
     await signOut(auth);
+    toast.success('Logged out successfully');
     router.push('/login');
   };
 
@@ -29,9 +46,14 @@ export default function Navbar() {
   const isAdminPage = pathname.startsWith('/admin');
   const showStudentLinks = !isPublicPage && !isAdminPage;
 
+  if (isAdminPage && pathname !== '/admin/login') {
+    return null;
+  }
+
   return (
-    <nav className={`glass-panel ${styles.navbar}`}>
-      <div className={styles.logo}>
+    <div className={styles.navbarWrapper}>
+      <nav className={`${styles.navbar}`}>
+        <div className={styles.logo}>
         <Link href="/" className="text-gradient">
           GenZ Tuition
         </Link>
@@ -60,13 +82,36 @@ export default function Navbar() {
 
       {!isAdminPage && (
         <div className={styles.navActions}>
-          {user ? (
-            <button className="btn-secondary" onClick={handleLogout}>Log Out</button>
-          ) : (
-            pathname !== '/login' && <Link href="/login" className="btn-secondary">Log In</Link>
+          {!user && pathname !== '/login' && (
+            <Link href="/login" className="btn-secondary">Log In</Link>
+          )}
+          {user && (
+            <div className={styles.profileMenuContainer}>
+              <button 
+                className={styles.avatarBtn} 
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+              >
+                {userData?.name ? userData.name.charAt(0).toUpperCase() : (user.email ? user.email.charAt(0).toUpperCase() : 'S')}
+              </button>
+              
+              {dropdownOpen && (
+                <div className={styles.dropdownMenu}>
+                  <div className={styles.dropdownInfo}>
+                    <p className={styles.dropdownName}>{userData?.name || 'Student'}</p>
+                    <p className={styles.dropdownEmail}>{user.email}</p>
+                    {userData?.class && <p className={styles.dropdownClass}>Class {userData.class}</p>}
+                  </div>
+                  <div className={styles.dropdownDivider}></div>
+                  <button className={styles.dropdownLogout} onClick={handleLogout}>
+                     Logout
+                  </button>
+                </div>
+              )}
+            </div>
           )}
         </div>
       )}
     </nav>
+    </div>
   );
 }

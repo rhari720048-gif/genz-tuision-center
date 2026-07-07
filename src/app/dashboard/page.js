@@ -5,10 +5,11 @@ import { useRouter } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, collection, query, where, getDocs, orderBy, limit, writeBatch } from 'firebase/firestore';
-import { CalendarDays, Trophy, Folder, GraduationCap, BellRing, LogOut, UserCircle } from 'lucide-react';
+import { CalendarDays, Trophy, Folder, GraduationCap, BellRing, LogOut, UserCircle, X } from 'lucide-react';
 import { signOut } from 'firebase/auth';
 import { motion } from 'framer-motion';
 import styles from './page.module.css';
+import ChatWidget from '@/components/ChatWidget';
 
 export default function Dashboard() {
   const [userData, setUserData] = useState(null);
@@ -66,6 +67,8 @@ export default function Dashboard() {
       
       notifSnap.forEach(d => {
         const notifData = d.data();
+        if (notifData.dismissedBy?.includes(uData.id)) return; // skip dismissed
+
         nList.push({ id: d.id, ...notifData });
         
         // Read Receipt logic
@@ -80,6 +83,25 @@ export default function Dashboard() {
       setNotifications(nList);
     } catch(err) {
       console.error(err);
+    }
+  };
+
+  const dismissNotification = async (notifId) => {
+    try {
+      // Optimistic update
+      setNotifications(prev => prev.filter(n => n.id !== notifId));
+      
+      const nRef = doc(db, "notifications", notifId);
+      const nDoc = await getDoc(nRef);
+      if (nDoc.exists()) {
+        const data = nDoc.data();
+        const dismissed = [...(data.dismissedBy || []), userData.id];
+        import('firebase/firestore').then(({ updateDoc }) => {
+          updateDoc(nRef, { dismissedBy: dismissed });
+        });
+      }
+    } catch (err) {
+      console.error('Error dismissing notification', err);
     }
   };
 
@@ -105,47 +127,38 @@ export default function Dashboard() {
 
   return (
     <div className={styles.dashboardContainer}>
-      
-      {/* CRM Top Header */}
-      <header className={styles.topHeader}>
-        <div className={styles.brand}>GenZ Student Portal</div>
-        <div className={styles.headerActions}>
-          <div className={styles.profileBadge}>
-            <UserCircle size={32} />
-            <div className={styles.profileText}>
-              <span className={styles.profileName}>{userData?.name || 'Student'}</span>
-              <span className={styles.profileRole}>{fullClassString}</span>
-            </div>
-          </div>
-          <button className={styles.logoutBtn} onClick={async () => { await signOut(auth); router.push('/login'); }}><LogOut size={18}/></button>
-        </div>
-      </header>
-
       <div className={styles.dashboardGrid}>
         <div className={styles.mainContent}>
           
+          <motion.div initial={{opacity:0, y:-20}} animate={{opacity:1, y:0}} className={styles.welcomeBanner}>
+            <h1 className={styles.welcomeTitle}>Welcome to <span className="text-gradient" style={{fontWeight: 900}}>GenZ Tuition</span>, {userData?.name?.split(' ')[0] || 'Student'}! <img src="/favicon.ico" alt="Favicon" style={{ width: '40px', height: '40px', verticalAlign: 'middle', marginLeft: '10px' }} /></h1>
+            <p className={styles.welcomeText}>Your personal student portal. Track your progress, access premium study materials, and prepare to ace your exams.</p>
+          </motion.div>
+          
           <motion.div initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} transition={{duration:0.4}} className={styles.metricsRow}>
-            <div className={styles.metricCard}>
+            <motion.div whileHover={{ scale: 1.02, y: -4 }} className={styles.metricCard}>
               <div className={styles.metricHeader}><span className={styles.metricIcon}><CalendarDays size={20} /></span> Attendance</div>
               <div className={styles.metricValue}>{attendance.total === 0 ? 'N/A' : `${attendance.percentage}%`}</div>
               <div className={styles.metricSubtext}>{attendance.present}/{attendance.total} Classes Attended</div>
-            </div>
+            </motion.div>
             
-            <div className={styles.metricCard}>
+            <motion.div whileHover={{ scale: 1.02, y: -4 }} className={styles.metricCard}>
               <div className={styles.metricHeader}><span className={styles.metricIcon}><Trophy size={20} /></span> Total Score</div>
               <div className={styles.metricValue}>{userData?.totalScore || 0}</div>
               <div className={styles.metricSubtext}>Keep learning!</div>
-            </div>
+            </motion.div>
           </motion.div>
 
           <motion.section initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} transition={{duration:0.5, delay: 0.1}} className={styles.foldersSection}>
             <h2 className={styles.sectionHeader}>{userData?.class ? `Class ${userData.class} Exams` : 'Exams'}</h2>
             <div className={styles.foldersGrid}>
               {examFolders.map((exam, index) => (
-                <Link href={`/materials?exam=${encodeURIComponent(exam.name)}`} key={index} className={styles.folderCard} style={{textDecoration: 'none', color: 'inherit'}}>
-                  <div className={styles.folderIcon}>{exam.icon}</div>
-                  <div className={styles.folderName}>{exam.name}</div>
-                </Link>
+                <motion.div key={index} whileHover={{ scale: 1.03, y: -4 }}>
+                  <Link href={`/materials?exam=${encodeURIComponent(exam.name)}`} className={styles.folderCard} style={{textDecoration: 'none', color: 'inherit', display: 'block'}}>
+                    <div className={styles.folderIcon}>{exam.icon}</div>
+                    <div className={styles.folderName}>{exam.name}</div>
+                  </Link>
+                </motion.div>
               ))}
             </div>
           </motion.section>
@@ -163,18 +176,26 @@ export default function Dashboard() {
             <h2 className={styles.sectionHeader}>Notifications</h2>
             <div className={styles.notificationList}>
               {notifications.length === 0 ? <p>No recent notifications.</p> : notifications.map((n, i) => (
-                <div key={i} className={styles.notificationItem}>
+                <motion.div key={n.id || i} whileHover={{ x: 4 }} className={styles.notificationItem} style={{ position: 'relative' }}>
                   <div className={styles.notifIcon}><BellRing size={20} /></div>
-                  <div className={styles.notifContent}>
+                  <div className={styles.notifContent} style={{ paddingRight: '24px' }}>
                     <h4>{n.title}</h4>
                     <p>{n.message}</p>
                   </div>
-                </div>
+                  <button 
+                    onClick={() => dismissNotification(n.id)}
+                    style={{ position: 'absolute', right: '10px', top: '10px', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}
+                    title="Dismiss"
+                  >
+                    <X size={16} />
+                  </button>
+                </motion.div>
               ))}
             </div>
           </section>
         </motion.div>
       </div>
+      <ChatWidget />
     </div>
   );
 }

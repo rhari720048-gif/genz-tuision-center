@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { collection, getDocs, orderBy, query, doc, getDoc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
+import { motion, AnimatePresence } from 'framer-motion';
 import styles from './page.module.css';
 
 export default function MaterialsPage() {
@@ -76,25 +77,40 @@ export default function MaterialsPage() {
 
   const subjects = [...new Set(materials.map(m => m.subject))];
 
+  const pageVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5, staggerChildren: 0.1 } }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: { opacity: 1, x: 0 }
+  };
+
   return (
-    <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto', minHeight: '100vh' }}>
-      <h1 className="text-gradient" style={{ fontSize: '3rem', marginBottom: '1rem' }}>Study Hub</h1>
-      <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>Access all your notes, previous papers, and important questions organized by subject.</p>
+    <motion.div 
+      variants={pageVariants}
+      initial="hidden"
+      animate="visible"
+      style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto', minHeight: '100vh' }}
+    >
+      <motion.h1 variants={itemVariants} className="text-gradient" style={{ fontSize: '3rem', marginBottom: '1rem' }}>Study Hub</motion.h1>
+      <motion.p variants={itemVariants} style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>Access all your notes, previous papers, and important questions organized by subject.</motion.p>
 
       {examFilter && (
-        <div style={{ background: 'rgba(6, 214, 160, 0.1)', color: 'var(--accent-secondary)', padding: '1rem', borderRadius: '12px', marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <motion.div variants={itemVariants} style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', padding: '1rem', borderRadius: '12px', marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span><strong>Filter Active:</strong> Showing resources for "{examFilter}"</span>
-          <button onClick={() => window.location.href = '/materials'} style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', padding: '0.5rem 1rem', borderRadius: '8px', cursor: 'pointer' }}>Clear Filter</button>
-        </div>
+          <button onClick={() => window.location.href = '/materials'} className="btn-secondary" style={{ padding: '0.5rem 1rem', fontSize: '0.9rem' }}>Clear Filter</button>
+        </motion.div>
       )}
 
       {materials.length === 0 ? (
-        <div className="glass-panel" style={{ padding: '2rem', textAlign: 'center' }}>No materials uploaded yet.</div>
+        <motion.div variants={itemVariants} className="glass-panel" style={{ padding: '2rem', textAlign: 'center' }}>No materials uploaded yet.</motion.div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: '250px 1fr', gap: '2rem', alignItems: 'start' }}>
+        <div className={styles.contentGrid}>
           
           {/* FOLDERS SIDEBAR */}
-          <div className="glass-panel" style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', borderRadius: '12px' }}>
+          <motion.div variants={itemVariants} className="glass-panel" style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', borderRadius: '12px' }}>
             <h3 style={{ padding: '0.5rem', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)' }}>Subjects</h3>
             {subjects.map(sub => (
               <button 
@@ -102,36 +118,50 @@ export default function MaterialsPage() {
                 onClick={() => setActiveSubject(sub)}
                 style={{ 
                   padding: '1rem', textAlign: 'left', background: activeSubject === sub ? 'var(--accent-primary)' : 'transparent',
-                  color: activeSubject === sub ? 'white' : 'var(--text-primary)', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold'
+                  color: activeSubject === sub ? 'white' : 'var(--text-primary)', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold',
+                  transition: 'all var(--transition-fast)'
                 }}
               >
                 📁 {sub}
               </button>
             ))}
-          </div>
+          </motion.div>
 
           {/* FILES VIEW */}
-          <div style={{ display: 'grid', gap: '1rem' }}>
+          <motion.div variants={itemVariants} style={{ display: 'grid', gap: '1rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
               <h2>{activeSubject} Resources</h2>
             </div>
-            {materials.filter(m => m.subject === activeSubject).map(m => (
-              <a key={m.id} href={m.fileUrl} target="_blank" rel="noopener noreferrer" className={styles.materialCard}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <h3 style={{ color: 'var(--accent-primary)', fontSize: '1.25rem', margin: 0 }}>{m.title}</h3>
-                  <div style={{ display: 'flex', gap: '1rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                    <span style={{ padding: '4px 8px', background: 'rgba(0,0,0,0.05)', borderRadius: '4px' }}>Class {m.class}</span>
-                    <span style={{ padding: '4px 8px', background: 'rgba(0,0,0,0.05)', borderRadius: '4px' }}>{m.type}</span>
+            <AnimatePresence mode="popLayout">
+              {materials.filter(m => m.subject === activeSubject).map(m => (
+                <motion.a 
+                  key={m.id} 
+                  href={m.fileUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className={styles.materialCard}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  whileHover={{ scale: 1.02, y: -4 }}
+                  layout
+                >
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <h3 style={{ color: 'var(--text-primary)', fontSize: '1.25rem', margin: 0 }}>{m.title}</h3>
+                    <div style={{ display: 'flex', gap: '1rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                      <span style={{ padding: '4px 8px', background: 'var(--bg-secondary)', borderRadius: '4px', border: '1px solid var(--border-color)' }}>Class {m.class}</span>
+                      <span style={{ padding: '4px 8px', background: 'var(--bg-secondary)', borderRadius: '4px', border: '1px solid var(--border-color)' }}>{m.type}</span>
+                    </div>
                   </div>
-                </div>
-                <div style={{ background: 'var(--accent-secondary)', color: 'white', padding: '0.5rem 1rem', borderRadius: '8px', fontWeight: 'bold' }}>
-                  Open File
-                </div>
-              </a>
-            ))}
-          </div>
+                  <div style={{ background: 'var(--accent-primary)', color: 'white', padding: '0.5rem 1rem', borderRadius: '100px', fontWeight: '600', fontSize: '0.9rem', transition: 'all var(--transition-fast)' }}>
+                    Open File
+                  </div>
+                </motion.a>
+              ))}
+            </AnimatePresence>
+          </motion.div>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }

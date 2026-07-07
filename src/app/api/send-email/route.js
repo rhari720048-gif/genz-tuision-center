@@ -1,25 +1,23 @@
 import nodemailer from 'nodemailer';
+import { SecureAPIHandler } from '@/lib/SecureAPIHandler';
+
+// Initialize the secure handler: Limit to 5 emails per minute per IP
+const emailSecurityHandler = new SecureAPIHandler('EMAIL_API', 5, 60000);
 
 export async function POST(req) {
-  try {
-    const { to, subject, html } = await req.json();
+  return emailSecurityHandler.execute(req, ['to', 'subject', 'html'], async (payload) => {
+    const { to, subject, html } = payload;
 
     const user = process.env.EMAIL_USER;
     const pass = process.env.EMAIL_PASS;
 
     if (!user || !pass) {
-      return new Response(JSON.stringify({ error: "Email credentials not configured in environment variables." }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      throw new Error("Email credentials not configured in environment variables.");
     }
 
     const transporter = nodemailer.createTransport({
       service: 'gmail',
-      auth: {
-        user,
-        pass,
-      },
+      auth: { user, pass },
     });
 
     const mailOptions = {
@@ -30,17 +28,6 @@ export async function POST(req) {
     };
 
     await transporter.sendMail(mailOptions);
-
-    return new Response(JSON.stringify({ success: true, message: 'Email sent successfully' }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
-
-  } catch (error) {
-    console.error("Error sending email:", error);
-    return new Response(JSON.stringify({ error: error.message || "Failed to send email" }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
+    return { message: 'Email sent successfully' };
+  });
 }

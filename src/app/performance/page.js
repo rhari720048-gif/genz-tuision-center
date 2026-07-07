@@ -4,6 +4,17 @@ import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
+import { motion } from 'framer-motion';
+
+const pageVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, staggerChildren: 0.1 } }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 }
+};
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -105,35 +116,35 @@ export default function PerformancePage() {
   };
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto', minHeight: '100vh' }}>
-      <h1 className="text-gradient" style={{ fontSize: '3rem', marginBottom: '1rem' }}>Performance Analytics</h1>
-      <p style={{ color: 'var(--text-secondary)', marginBottom: '3rem' }}>Track your academic progress and attendance over time.</p>
+    <motion.div variants={pageVariants} initial="hidden" animate="visible" style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto', minHeight: '100vh' }}>
+      <motion.h1 variants={itemVariants} className="text-gradient" style={{ fontSize: '3rem', marginBottom: '1rem' }}>Performance Analytics</motion.h1>
+      <motion.p variants={itemVariants} style={{ color: 'var(--text-secondary)', marginBottom: '3rem' }}>Track your academic progress and attendance over time.</motion.p>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', marginBottom: '3rem' }}>
-        <div className="glass-panel" style={{ padding: '2rem', borderRadius: '12px' }}>
+      <motion.div variants={pageVariants} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', marginBottom: '3rem' }}>
+        <motion.div variants={itemVariants} whileHover={{ scale: 1.02, y: -4 }} className="glass-panel" style={{ padding: '2rem', borderRadius: '12px' }}>
           <h2>Attendance</h2>
-          <div style={{ fontSize: '4rem', fontWeight: 'bold', color: 'var(--accent-primary)', margin: '1rem 0' }}>
+          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", bounce: 0.5, delay: 0.2 }} style={{ fontSize: '4rem', fontWeight: 'bold', color: 'var(--accent-primary)', margin: '1rem 0' }}>
             {attendance.percentage}%
-          </div>
+          </motion.div>
           <p style={{ color: 'var(--text-secondary)' }}>You have attended {attendance.present} out of {attendance.total} classes.</p>
-        </div>
+        </motion.div>
         
-        <div className="glass-panel" style={{ padding: '2rem', borderRadius: '12px' }}>
+        <motion.div variants={itemVariants} whileHover={{ scale: 1.02, y: -4 }} className="glass-panel" style={{ padding: '2rem', borderRadius: '12px' }}>
           <h2>Average Score</h2>
-          <div style={{ fontSize: '4rem', fontWeight: 'bold', color: 'var(--accent-secondary)', margin: '1rem 0' }}>
+          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", bounce: 0.5, delay: 0.3 }} style={{ fontSize: '4rem', fontWeight: 'bold', color: 'var(--accent-secondary)', margin: '1rem 0' }}>
             {marks.length === 0 ? 0 : Math.round(marks.reduce((a, b) => a + (b.score/b.max)*100, 0) / marks.length)}%
-          </div>
+          </motion.div>
           <p style={{ color: 'var(--text-secondary)' }}>Based on {marks.length} assessments.</p>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
-      <div className="glass-panel" style={{ padding: '2rem', borderRadius: '12px', height: '500px' }}>
+      <motion.div variants={itemVariants} className="glass-panel" style={{ padding: '2rem', borderRadius: '12px', height: '500px' }}>
         {marks.length === 0 ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>No marks available to generate charts.</div>
         ) : (
           <Bar options={chartOptions} data={lineChartData} />
         )}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
