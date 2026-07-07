@@ -78,7 +78,6 @@ export default function StudentLogin() {
           <div className={styles.inputGroup}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <label className={styles.label}>Password</label>
-              <span className={styles.switchLink} style={{ fontSize: '0.8rem', fontWeight: 500 }} onClick={() => router.push('/forgot-password')}>Forgot Password?</span>
             </div>
             <input 
               type="password" 
@@ -94,10 +93,7 @@ export default function StudentLogin() {
           </button>
         </form>
         
-        <p className={styles.switchText}>
-          Forgot your password? <span className={styles.switchLink} onClick={() => router.push('/forgot-password')}>Reset Here</span>
-        </p>
-        <p className={styles.switchText} style={{ marginTop: '0.5rem' }}>
+        <p className={styles.switchText} style={{ marginTop: '1.5rem' }}>
           Are you an administrator? <span className={styles.switchLink} onClick={() => router.push('/admin/login')}>Admin Login</span>
         </p>
       </div>

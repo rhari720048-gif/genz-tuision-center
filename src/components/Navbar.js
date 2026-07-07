@@ -1,6 +1,7 @@
 "use client";
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { LayoutDashboard, BookOpen, FileQuestion, Trophy } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
@@ -38,10 +39,22 @@ export default function Navbar() {
       
       {showStudentLinks && (
         <div className={styles.links}>
-          <Link href="/dashboard" className={styles.link}>Dashboard</Link>
-          <Link href="/materials" className={styles.link}>Materials</Link>
-          <Link href="/quizzes" className={styles.link}>Quizzes</Link>
-          <Link href="/performance" className={styles.link}>Performance</Link>
+          <Link href="/dashboard" className={`${styles.link} ${pathname === '/dashboard' ? styles.active : ''}`}>
+            <LayoutDashboard size={22} className={styles.navIcon} />
+            <span className={styles.navText}>Home</span>
+          </Link>
+          <Link href="/materials" className={`${styles.link} ${pathname === '/materials' ? styles.active : ''}`}>
+            <BookOpen size={22} className={styles.navIcon} />
+            <span className={styles.navText}>Materials</span>
+          </Link>
+          <Link href="/quizzes" className={`${styles.link} ${pathname === '/quizzes' ? styles.active : ''}`}>
+            <FileQuestion size={22} className={styles.navIcon} />
+            <span className={styles.navText}>Quizzes</span>
+          </Link>
+          <Link href="/performance" className={`${styles.link} ${pathname === '/performance' ? styles.active : ''}`}>
+            <Trophy size={22} className={styles.navIcon} />
+            <span className={styles.navText}>Report</span>
+          </Link>
         </div>
       )}
 

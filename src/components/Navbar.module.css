@@ -23,23 +23,62 @@
   align-items: center;
 }
 
-.link {
-  color: var(--text-primary);
-  font-weight: 500;
-  transition: color var(--transition-fast);
-}
-
-.link:hover {
-  color: var(--accent-primary);
-}
-
 .navActions {
   display: flex;
   gap: 1rem;
 }
 
+.link {
+  color: var(--text-secondary);
+  font-weight: 500;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.link:hover, .link.active {
+  color: var(--accent-primary);
+}
+
+.navIcon {
+  display: none;
+}
+
 @media (max-width: 768px) {
+  .logo {
+    display: none; /* Can hide logo to save space or leave it, but bottom nav handles routing */
+  }
+
+  .navActions {
+    margin-left: auto;
+  }
+
   .links {
-    display: none;
+    display: flex;
+    position: fixed;
+    bottom: 1rem;
+    left: 1rem;
+    right: 1rem;
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--border-color);
+    border-radius: 24px;
+    padding: 0.8rem 0.5rem;
+    justify-content: space-around;
+    z-index: 1000;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  }
+  
+  .link {
+    flex-direction: column;
+    gap: 0.2rem;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+  }
+
+  .navIcon {
+    display: block;
+    margin-bottom: 2px;
   }
 }

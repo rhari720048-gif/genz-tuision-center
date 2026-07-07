@@ -3,8 +3,10 @@ import { useState, useEffect } from 'react';
 import { collection, getDocs, addDoc, serverTimestamp, deleteDoc, doc, updateDoc, writeBatch, setDoc, query, limit, where } from 'firebase/firestore';
 import { db, auth, firebaseConfig } from '@/lib/firebase';
 import { initializeApp, getApps } from 'firebase/app';
-import { getAuth, createUserWithEmailAndPassword, signOut as secondarySignOut, onAuthStateChanged, signOut } from 'firebase/auth';
+import { getAuth, createUserWithEmailAndPassword, signOut as secondarySignOut, onAuthStateChanged, signOut, signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
+import { LayoutDashboard, Users, ClipboardList, Banknote, BookOpen, FileQuestion, Bell, LogOut, Search, UserCircle, PlusCircle, FileUp, Download, Menu, X, CheckCircle2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import styles from './page.module.css';
 
 export default function AdminDashboard() {
@@ -20,7 +22,20 @@ export default function AdminDashboard() {
   const [searchMat, setSearchMat] = useState('');
   const [searchQuiz, setSearchQuiz] = useState('');
   const [searchNotif, setSearchNotif] = useState('');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const router = useRouter();
+
+  const sendEmailNotification = async (to, subject, html) => {
+    try {
+      await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ to, subject, html })
+      });
+    } catch (error) {
+      console.error("Email sending failed:", error);
+    }
+  };
 
   // Load Data & Auth Guard
   useEffect(() => {
@@ -86,8 +101,10 @@ export default function AdminDashboard() {
   const [stEmail, setStEmail] = useState('');
   const [stPassword, setStPassword] = useState('');
   const [stClass, setStClass] = useState('10');
-  const [stDept, setStDept] = useState('Foundation');
+  const [stDept, setStDept] = useState('General');
+  const [stSubjects, setStSubjects] = useState('Tamil, English, Maths, Science, Social Science');
   const [editSt, setEditSt] = useState(null);
+  const [isRegistering, setIsRegistering] = useState(false);
   const [bulkCsv, setBulkCsv] = useState(null);
   const [isUploadingCsv, setIsUploadingCsv] = useState(false);
   
@@ -105,7 +122,8 @@ export default function AdminDashboard() {
   // Materials & Quizzes
   const [matTitle, setMatTitle] = useState('');
   const [matUrl, setMatUrl] = useState('');
-  const [matClass, setMatClass] = useState('10');
+  const [matClass, setMatClass] = useState('All');
+  const [matDept, setMatDept] = useState('All');
   const [matSubject, setMatSubject] = useState('Science');
   const [matType, setMatType] = useState('Notes');
   const [editMat, setEditMat] = useState(null);
@@ -170,6 +188,14 @@ export default function AdminDashboard() {
             name, email, class: sClass, department: dept, role: 'student', createdAt: serverTimestamp() 
           });
           await secondarySignOut(secondaryAuth);
+          
+          // Send Email
+          await sendEmailNotification(
+            email, 
+            "Welcome to GenZ Tuition Center!", 
+            `<h3>Hello ${name},</h3><p>Your student account has been created successfully.</p><p><b>Login Email:</b> ${email}<br/><b>Password:</b> ${password}</p><p>Please login to your portal to see your dashboard.</p>`
+          );
+
           successCount++;
         } catch (err) {
           console.error(`Row ${i} failed:`, err);
@@ -198,12 +224,23 @@ export default function AdminDashboard() {
   // Handlers
   const handleStudent = async (e) => {
     e.preventDefault();
+    if(isRegistering) return;
+    
     if (editSt) {
-      await updateDoc(doc(db, "users", editSt.id), { name: stName, email: stEmail, class: stClass, department: stDept });
-      setEditSt(null);
-      alert("Student Updated");
+      setIsRegistering(true);
+      try {
+        await updateDoc(doc(db, "users", editSt.id), { name: stName, email: stEmail, class: stClass, department: stClass === '10' ? 'General' : stDept, subjects: stSubjects });
+        setEditSt(null);
+        alert("Student Updated");
+      } catch (err) {
+        console.error("Error updating student:", err);
+        alert("Error updating student: " + err.message);
+      } finally {
+        setIsRegistering(false);
+      }
     } else {
       if(stPassword.length < 6) return alert("Password must be at least 6 characters.");
+      setIsRegistering(true);
       try {
         const secondaryApp = getApps().find(a => a.name === "Secondary") || initializeApp(firebaseConfig, "Secondary");
         const secondaryAuth = getAuth(secondaryApp);
@@ -212,11 +249,46 @@ export default function AdminDashboard() {
         const uid = cred.user.uid;
         await secondarySignOut(secondaryAuth);
         
-        await setDoc(doc(db, "users", uid), { name: stName, email: stEmail, class: stClass, department: stDept, role: 'student', createdAt: serverTimestamp() });
-        alert("Student Securely Created!");
+        await setDoc(doc(db, "users", uid), { name: stName, email: stEmail, class: stClass, department: stClass === '10' ? 'General' : stDept, subjects: stSubjects, role: 'student', createdAt: serverTimestamp() });
+        
+        // Send Email
+        await sendEmailNotification(
+          stEmail, 
+          "Welcome to GenZ Tuition Center!", 
+          `<h3>Hello ${stName},</h3><p>Your student account has been created successfully.</p><p><b>Login Email:</b> ${stEmail}<br/><b>Password:</b> ${stPassword}</p><p>Please login to your portal to see your dashboard.</p>`
+        );
+
+        alert("Student Securely Created & Welcome Email Sent!");
       } catch (err) {
-        console.error(err);
-        return alert(err.message);
+        if (err.code === 'auth/email-already-in-use') {
+          try {
+            const secondaryApp = getApps().find(a => a.name === "Secondary") || initializeApp(firebaseConfig, "Secondary");
+            const secondaryAuth = getAuth(secondaryApp);
+            const loginCred = await signInWithEmailAndPassword(secondaryAuth, stEmail, stPassword);
+            const uid = loginCred.user.uid;
+            await secondarySignOut(secondaryAuth);
+            
+            await setDoc(doc(db, "users", uid), { name: stName, email: stEmail, class: stClass, department: stDept, role: 'student', createdAt: serverTimestamp() });
+            
+            await sendEmailNotification(
+              stEmail, 
+              "Account Restored - GenZ Tuition Center!", 
+              `<h3>Hello ${stName},</h3><p>Your student account has been restored successfully.</p><p><b>Login Email:</b> ${stEmail}<br/><b>Password:</b> ${stPassword}</p>`
+            );
+            alert("This student was previously deleted from the database but remained in Authentication. We have RESTORED their database record successfully!");
+          } catch(recoverErr) {
+            return alert("Error: This email is already registered in Firebase Authentication, but the password provided is incorrect, so we could not restore it. To completely remove it, please go to Firebase Console -> Authentication -> Users and delete this email manually.");
+          }
+        } else if (err.code === 'auth/invalid-email') {
+          return alert("Error: Invalid email format.");
+        } else if (err.code === 'auth/weak-password') {
+          return alert("Error: Password is too weak. Please use at least 6 characters.");
+        } else {
+          console.error(err);
+          return alert(err.message);
+        }
+      } finally {
+        setIsRegistering(false);
       }
     }
     setStName(''); setStEmail(''); setStPassword(''); fetchStudents();
@@ -269,12 +341,36 @@ export default function AdminDashboard() {
   const handleMaterial = async (e) => {
     e.preventDefault();
     if (editMat) {
-      await updateDoc(doc(db, "materials", editMat.id), { title: matTitle, fileUrl: matUrl, class: matClass, subject: matSubject, type: matType });
+      await updateDoc(doc(db, "materials", editMat.id), { title: matTitle, fileUrl: matUrl, class: matClass, department: matClass === '10' ? 'General' : matDept, subject: matSubject, type: matType });
       setEditMat(null);
       alert("Material Updated");
     } else {
-      await addDoc(collection(db, "materials"), { title: matTitle, fileUrl: matUrl, class: matClass, subject: matSubject, type: matType, uploadedAt: serverTimestamp() });
-      await addDoc(collection(db, "notifications"), { title: `New Material: ${matTitle}`, message: `A new ${matType} for ${matSubject} has been uploaded for Class ${matClass}.`, createdAt: serverTimestamp() });
+      await addDoc(collection(db, "materials"), { title: matTitle, fileUrl: matUrl, class: matClass, department: matClass === '10' ? 'General' : matDept, subject: matSubject, type: matType, uploadedAt: serverTimestamp() });
+      await addDoc(collection(db, "notifications"), { title: `New Material: ${matTitle}`, message: `A new ${matType} for ${matSubject} has been uploaded.`, createdAt: serverTimestamp() });
+      
+      // Send Email to targeted students
+      let targetStudents = students;
+      if (matClass && matClass !== 'All') {
+        targetStudents = targetStudents.filter(s => s.class === matClass);
+      }
+      if (matDept && matDept !== 'All' && matClass !== '10') {
+        targetStudents = targetStudents.filter(s => s.department === matDept || s.department === 'General');
+      }
+      if (matSubject && matSubject !== 'All') {
+        targetStudents = targetStudents.filter(s => {
+          if (!s.subjects) return false;
+          return s.subjects.toLowerCase().includes(matSubject.trim().toLowerCase());
+        });
+      }
+      
+      targetStudents.forEach(st => {
+        sendEmailNotification(
+          st.email,
+          `New Study Material: ${matTitle}`,
+          `<h3>Hello ${st.name},</h3><p>A new ${matType} for ${matSubject} has been uploaded to your portal.</p><p>Please login to review it.</p>`
+        );
+      });
+
       alert("Material Uploaded & Notification Auto-Sent!");
     }
     setMatTitle(''); setMatUrl(''); fetchMaterials(); fetchNotifications();
@@ -302,7 +398,17 @@ export default function AdminDashboard() {
       alert("Notification Updated");
     } else {
       await addDoc(collection(db, "notifications"), { title: notifTitle, message: notifMsg, createdAt: serverTimestamp() });
-      alert("Notification Sent");
+      
+      // Send Broadcast Email to ALL students
+      students.forEach(st => {
+        sendEmailNotification(
+          st.email,
+          `GenZ Alert: ${notifTitle}`,
+          `<h3>Hello ${st.name},</h3><p>You have a new broadcast notification from the GenZ Admin:</p><blockquote style="border-left: 4px solid #06D6A0; padding-left: 10px;">${notifMsg}</blockquote>`
+        );
+      });
+
+      alert("Notification Sent & Emailed to All Students!");
     }
     setNotifTitle(''); setNotifMsg(''); fetchNotifications();
   };
@@ -319,7 +425,18 @@ export default function AdminDashboard() {
         dueDate: feeDueDate,
         updatedAt: serverTimestamp() 
       });
-      alert("Fee Status Updated!");
+
+      // Send Email for Fee update
+      const student = students.find(s => s.id === feeStudentId);
+      if (student) {
+        sendEmailNotification(
+          student.email,
+          `Fee Update: ${feeMonth}`,
+          `<h3>Hello ${student.name},</h3><p>Your fee status for <b>${feeMonth}</b> has been updated.</p><p><b>Status:</b> ${feeStatus}<br/><b>Amount:</b> ₹${feeAmount}<br/><b>Due Date:</b> ${feeDueDate}</p>`
+        );
+      }
+
+      alert("Fee Status Updated & Email Sent!");
       fetchFees();
     } catch(err) {
       console.error(err);
@@ -478,48 +595,96 @@ export default function AdminDashboard() {
   return (
     <div className={styles.layoutContainer}>
       {/* SIDEBAR */}
-      <aside className={styles.sidebar}>
-        <div className={styles.brand}>GenZ Admin</div>
-        <div className={styles.navItems}>
-          <button className={`${styles.navItem} ${activeTab === 'overview' ? styles.active : ''}`} onClick={() => setActiveTab('overview')}>📊 Overview</button>
-          <button className={`${styles.navItem} ${activeTab === 'students' ? styles.active : ''}`} onClick={() => setActiveTab('students')}>🎓 Students</button>
-          <button className={`${styles.navItem} ${activeTab === 'records' ? styles.active : ''}`} onClick={() => setActiveTab('records')}>📝 Attendance & Marks</button>
-          <button className={`${styles.navItem} ${activeTab === 'fees' ? styles.active : ''}`} onClick={() => setActiveTab('fees')}>💰 Fees</button>
-          <button className={`${styles.navItem} ${activeTab === 'materials' ? styles.active : ''}`} onClick={() => setActiveTab('materials')}>📚 Materials</button>
-          <button className={`${styles.navItem} ${activeTab === 'quizzes' ? styles.active : ''}`} onClick={() => setActiveTab('quizzes')}>📝 Quizzes</button>
-          <button className={`${styles.navItem} ${activeTab === 'notifications' ? styles.active : ''}`} onClick={() => setActiveTab('notifications')}>📢 Alerts</button>
+      <aside className={`${styles.sidebar} ${isMobileMenuOpen ? styles.open : ''}`}>
+        <div className={styles.brand} style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+          GenZ CRM
+          <button className={styles.hamburgerBtn} onClick={() => setIsMobileMenuOpen(false)} style={{display: isMobileMenuOpen ? 'block' : 'none'}}>
+            <X size={24} />
+          </button>
         </div>
-        <button className={styles.logoutBtn} onClick={async () => { sessionStorage.removeItem('adminSession'); await signOut(auth); router.push('/admin/login'); }}>Sign Out</button>
+        <div className={styles.navItems}>
+          <button className={`${styles.navItem} ${activeTab === 'overview' ? styles.active : ''}`} onClick={() => {setActiveTab('overview'); setIsMobileMenuOpen(false);}}><LayoutDashboard size={20}/> Overview</button>
+          <button className={`${styles.navItem} ${activeTab === 'students' ? styles.active : ''}`} onClick={() => {setActiveTab('students'); setIsMobileMenuOpen(false);}}><Users size={20}/> Students</button>
+          <button className={`${styles.navItem} ${activeTab === 'records' ? styles.active : ''}`} onClick={() => {setActiveTab('records'); setIsMobileMenuOpen(false);}}><ClipboardList size={20}/> Records</button>
+          <button className={`${styles.navItem} ${activeTab === 'fees' ? styles.active : ''}`} onClick={() => {setActiveTab('fees'); setIsMobileMenuOpen(false);}}><Banknote size={20}/> Fees</button>
+          <button className={`${styles.navItem} ${activeTab === 'materials' ? styles.active : ''}`} onClick={() => {setActiveTab('materials'); setIsMobileMenuOpen(false);}}><BookOpen size={20}/> Materials</button>
+          <button className={`${styles.navItem} ${activeTab === 'quizzes' ? styles.active : ''}`} onClick={() => {setActiveTab('quizzes'); setIsMobileMenuOpen(false);}}><FileQuestion size={20}/> Quizzes</button>
+          <button className={`${styles.navItem} ${activeTab === 'notifications' ? styles.active : ''}`} onClick={() => {setActiveTab('notifications'); setIsMobileMenuOpen(false);}}><Bell size={20}/> Alerts</button>
+        </div>
       </aside>
 
       {/* MAIN CONTENT */}
       <main className={styles.mainContent}>
         
-        {/* OVERVIEW TAB */}
-        {activeTab === 'overview' && (
-          <div>
-            <div className={styles.pageHeader}><h1 className={styles.pageTitle}>Dashboard Overview</h1></div>
-            <div className={styles.statsGrid}>
-              <div className={styles.statCard}><span className={styles.statLabel}>Total Students</span><span className={styles.statValue}>{students.length}</span></div>
-              <div className={styles.statCard}><span className={styles.statLabel}>Study Materials</span><span className={styles.statValue}>{materials.length}</span></div>
-              <div className={styles.statCard}><span className={styles.statLabel}>Active Quizzes</span><span className={styles.statValue}>{quizzes.length}</span></div>
-              <div className={styles.statCard}><span className={styles.statLabel}>Notifications Sent</span><span className={styles.statValue}>{notifications.length}</span></div>
+        {/* CRM TOP HEADER */}
+        <header className={styles.topHeader}>
+          <button className={styles.hamburgerBtn} onClick={() => setIsMobileMenuOpen(true)}>
+            <Menu size={24} />
+          </button>
+          <div className={styles.headerActions}>
+            <div className={styles.profileBadge}>
+              <UserCircle size={32} />
+              <div className={styles.profileText}>
+                <span className={styles.profileName}>Admin Portal</span>
+                <span className={styles.profileRole}>System Admin</span>
+              </div>
             </div>
+            <button className={styles.logoutBtn} onClick={async () => { sessionStorage.removeItem('adminSession'); await signOut(auth); router.push('/admin/login'); }}><LogOut size={18}/></button>
           </div>
-        )}
+        </header>
+
+        <div className={styles.pageContent}>
+          {/* OVERVIEW TAB */}
+          <AnimatePresence mode="wait">
+            {activeTab === 'overview' && (
+              <motion.div key="overview" initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} exit={{opacity:0, y:-20}} transition={{duration:0.3}}>
+                <div className={styles.pageHeader}><h1 className={styles.pageTitle}>Dashboard Overview</h1></div>
+                <div className={styles.statsGrid}>
+                  <motion.div whileHover={{scale:1.02}} className={styles.statCard}>
+                    <div className={styles.statIcon}><Users size={24} /></div>
+                    <div className={styles.statInfo}>
+                      <span className={styles.statLabel}>Total Students</span>
+                      <span className={styles.statValue}>{students.length}</span>
+                    </div>
+                  </motion.div>
+                  <motion.div whileHover={{scale:1.02}} className={styles.statCard}>
+                    <div className={styles.statIcon}><BookOpen size={24} /></div>
+                    <div className={styles.statInfo}>
+                      <span className={styles.statLabel}>Study Materials</span>
+                      <span className={styles.statValue}>{materials.length}</span>
+                    </div>
+                  </motion.div>
+                  <motion.div whileHover={{scale:1.02}} className={styles.statCard}>
+                    <div className={styles.statIcon}><FileQuestion size={24} /></div>
+                    <div className={styles.statInfo}>
+                      <span className={styles.statLabel}>Active Quizzes</span>
+                      <span className={styles.statValue}>{quizzes.length}</span>
+                    </div>
+                  </motion.div>
+                  <motion.div whileHover={{scale:1.02}} className={styles.statCard}>
+                    <div className={styles.statIcon}><Bell size={24} /></div>
+                    <div className={styles.statInfo}>
+                      <span className={styles.statLabel}>Notifications Sent</span>
+                      <span className={styles.statValue}>{notifications.length}</span>
+                    </div>
+                  </motion.div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
         {/* STUDENTS TAB */}
         {activeTab === 'students' && !selectedStudent && (
-          <div>
+          <motion.div initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} transition={{duration:0.3}}>
             <div className={styles.pageHeader}><h1 className={styles.pageTitle}>Manage Students</h1></div>
             
             {/* BULK UPLOAD */}
-            <div className={styles.card} style={{ marginBottom: '2rem', border: '1px dashed var(--accent-primary)' }}>
-              <h2 className={styles.cardTitle}>Bulk CSV Upload</h2>
-              <form onSubmit={handleCsvUpload} style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                <input type="file" accept=".csv" onChange={(e) => setBulkCsv(e.target.files[0])} className={styles.input} style={{ flex: 1 }} />
-                <button type="submit" className={styles.submitBtn} disabled={isUploadingCsv}>{isUploadingCsv ? "Uploading..." : "Upload CSV"}</button>
-                <button type="button" className={styles.btnSecondary} onClick={downloadSampleCsv} style={{ background: 'transparent', border: '1px solid var(--text-secondary)', color: 'white', padding: '0.75rem 1rem', borderRadius: '8px', cursor: 'pointer' }}>Download Sample</button>
+            <div className={styles.card} style={{ marginBottom: '2rem', border: '1px dashed var(--border-color)', background: 'var(--bg-secondary)' }}>
+              <h2 className={styles.cardTitle} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><FileUp size={20} /> Bulk CSV Upload</h2>
+              <form onSubmit={handleCsvUpload} style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap', marginTop: '1rem' }}>
+                <input type="file" accept=".csv" onChange={(e) => setBulkCsv(e.target.files[0])} className={styles.input} style={{ flex: 1, background: 'white' }} />
+                <button type="submit" className={styles.submitBtn} disabled={isUploadingCsv} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><FileUp size={18}/> {isUploadingCsv ? "Uploading..." : "Upload CSV"}</button>
+                <button type="button" className={styles.btnSecondary} onClick={downloadSampleCsv} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'white', border: '1px solid var(--border-color)', color: 'var(--text-primary)', padding: '0.75rem 1rem', borderRadius: '8px', cursor: 'pointer', fontWeight: '500' }}><Download size={18}/> Download Sample</button>
               </form>
             </div>
 
@@ -531,11 +696,35 @@ export default function AdminDashboard() {
                 {!editSt && (
                   <div className={styles.inputGroup}><label className={styles.label}>Set Password</label><input className={styles.input} type="password" value={stPassword} onChange={e=>setStPassword(e.target.value)} required /></div>
                 )}
-                <div className={styles.inputGroup}><label className={styles.label}>Class</label><input className={styles.input} value={stClass} onChange={e=>setStClass(e.target.value)} required /></div>
-                <div className={styles.inputGroup}><label className={styles.label}>Department</label><input className={styles.input} value={stDept} onChange={e=>setStDept(e.target.value)} required /></div>
+                <div className={styles.inputGroup}>
+                  <label className={styles.label}>Class</label>
+                  <select className={styles.input} value={stClass} onChange={e=>setStClass(e.target.value)} required>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                  </select>
+                </div>
+                {stClass !== '10' && (
+                  <div className={styles.inputGroup}>
+                    <label className={styles.label}>Department</label>
+                    <select className={styles.input} value={stDept} onChange={e=>setStDept(e.target.value)} required>
+                      <option value="Science">Science (Bio)</option>
+                      <option value="Computer Science">Computer Science</option>
+                      <option value="Commerce">Commerce</option>
+                      <option value="Arts">Arts</option>
+                      <option value="Vocational">Vocational</option>
+                    </select>
+                  </div>
+                )}
+                <div className={styles.inputGroup}>
+                  <label className={styles.label}>Subjects (Comma separated)</label>
+                  <input className={styles.input} value={stSubjects} onChange={e=>setStSubjects(e.target.value)} required />
+                </div>
                 <div className={styles.fullWidth} style={{ display: 'flex', gap: '1rem' }}>
-                  <button type="submit" className={styles.submitBtn}>{editSt ? "Update Student" : "Register Student"}</button>
-                  {editSt && <button type="button" className={styles.submitBtn} style={{background:'var(--bg-secondary)', color:'white'}} onClick={()=>{setEditSt(null); setStName(''); setStEmail('');}}>Cancel</button>}
+                  <button type="submit" className={styles.submitBtn} disabled={isRegistering}>
+                    {isRegistering ? "Processing..." : (editSt ? "Update Student" : "Register Student")}
+                  </button>
+                  {editSt && <button type="button" className={styles.submitBtn} style={{background:'var(--bg-secondary)', color:'var(--text-primary)', border: '1px solid var(--border-color)'}} onClick={()=>{setEditSt(null); setStName(''); setStEmail(''); setStPassword('');}}>Cancel</button>}
                 </div>
               </form>
             </div>
@@ -553,7 +742,17 @@ export default function AdminDashboard() {
                     <div className={styles.dataSub}>{s.department}</div>
                     <div className={styles.actionGroup}>
                       <button className={styles.editBtn} style={{background: 'rgba(6, 214, 160, 0.1)', color: 'var(--accent-secondary)'}} onClick={() => handleViewProfile(s)}>Profile</button>
-                      <button className={styles.editBtn} onClick={()=>{setEditSt(s); setStName(s.name); setStEmail(s.email); setStClass(s.class); setStDept(s.department);}}>Edit</button>
+                      <button className={styles.editBtn} onClick={()=>{setEditSt(s); setStName(s.name); setStEmail(s.email); setStClass(s.class); setStDept(s.department || 'Science'); setStSubjects(s.subjects || '');}}>Edit</button>
+                      <button className={styles.editBtn} style={{background: 'rgba(255, 193, 7, 0.1)', color: '#ffb300'}} onClick={async () => {
+                        if(confirm(`Send a password reset email to ${s.email}?`)) {
+                          try {
+                            await sendPasswordResetEmail(auth, s.email);
+                            alert(`Password reset email sent to ${s.email}`);
+                          } catch(err) {
+                            alert(err.message);
+                          }
+                        }
+                      }}>Reset Pass</button>
                       <button className={styles.deleteBtn} onClick={async ()=>{ 
                         if(confirm("Delete this student AND all their records?")) { 
                           const batch = writeBatch(db);
@@ -574,11 +773,11 @@ export default function AdminDashboard() {
                 ))}
               </div>
             </div>
-          </div>
+          </motion.div>
         )}
 
         {activeTab === 'students' && selectedStudent && (
-          <div>
+          <motion.div initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} transition={{duration:0.3}}>
             <button className={styles.backBtn} onClick={() => setSelectedStudent(null)}>← Back to Students</button>
             <div className={styles.profileHeader}>
               <div className={styles.profileAvatar}>{selectedStudent.name[0]}</div>
@@ -616,12 +815,12 @@ export default function AdminDashboard() {
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* RECORDS TAB: SPREADSHEET ATTENDANCE */}
         {activeTab === 'records' && (
-          <div>
+          <motion.div initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} transition={{duration:0.3}}>
             <div className={styles.pageHeader}><h1 className={styles.pageTitle}>Data Entry Grids</h1></div>
             <div className={styles.card}>
               <h2 className={styles.cardTitle}>Spreadsheet Attendance</h2>
@@ -695,12 +894,12 @@ export default function AdminDashboard() {
               </div>
               <p style={{color: 'var(--text-secondary)', marginTop: '1rem'}}>Automatically scans all students. Anyone with less than 75% attendance (minimum 5 days recorded) will receive an automated warning notification.</p>
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* FEES TAB */}
         {activeTab === 'fees' && (
-          <div>
+          <motion.div initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} transition={{duration:0.3}}>
             <div className={styles.pageHeader}><h1 className={styles.pageTitle}>Fees Management</h1></div>
             
             <div className={styles.formGrid}>
@@ -798,24 +997,45 @@ export default function AdminDashboard() {
                 )})}
               </div>
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* MATERIALS TAB */}
         {activeTab === 'materials' && (
-          <div>
+          <motion.div initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} transition={{duration:0.3}}>
             <div className={styles.pageHeader}><h1 className={styles.pageTitle}>Study Materials</h1></div>
             <div className={styles.card}>
               <h2 className={styles.cardTitle}>{editMat ? "Edit Material" : "Upload Material"}</h2>
               <form onSubmit={handleMaterial} className={styles.formGrid}>
                 <div className={styles.inputGroup}><label className={styles.label}>Title</label><input className={styles.input} value={matTitle} onChange={e=>setMatTitle(e.target.value)} required /></div>
                 <div className={styles.inputGroup}><label className={styles.label}>URL Link</label><input className={styles.input} type="url" value={matUrl} onChange={e=>setMatUrl(e.target.value)} required /></div>
-                <div className={styles.inputGroup}><label className={styles.label}>Class</label><input className={styles.input} value={matClass} onChange={e=>setMatClass(e.target.value)} required /></div>
-                <div className={styles.inputGroup}><label className={styles.label}>Subject</label><input className={styles.input} value={matSubject} onChange={e=>setMatSubject(e.target.value)} required /></div>
+                <div className={styles.inputGroup}>
+                  <label className={styles.label}>Class</label>
+                  <select className={styles.input} value={matClass} onChange={e=>setMatClass(e.target.value)} required>
+                    <option value="All">All</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                  </select>
+                </div>
+                {matClass !== '10' && matClass !== 'All' && (
+                  <div className={styles.inputGroup}>
+                    <label className={styles.label}>Department</label>
+                    <select className={styles.input} value={matDept} onChange={e=>setMatDept(e.target.value)} required>
+                      <option value="All">All</option>
+                      <option value="Science">Science (Bio)</option>
+                      <option value="Computer Science">Computer Science</option>
+                      <option value="Commerce">Commerce</option>
+                      <option value="Arts">Arts</option>
+                      <option value="Vocational">Vocational</option>
+                    </select>
+                  </div>
+                )}
+                <div className={styles.inputGroup}><label className={styles.label}>Subject</label><input className={styles.input} value={matSubject} onChange={e=>setMatSubject(e.target.value)} placeholder="e.g. Science or All" required /></div>
                 <div className={styles.inputGroup}><label className={styles.label}>Type</label><input className={styles.input} value={matType} onChange={e=>setMatType(e.target.value)} required /></div>
                 <div className={styles.fullWidth} style={{ display: 'flex', gap: '1rem' }}>
                   <button type="submit" className={styles.submitBtn}>{editMat ? "Update Material" : "Upload & Notify"}</button>
-                  {editMat && <button type="button" className={styles.submitBtn} style={{background:'var(--bg-secondary)', color:'white'}} onClick={()=>{setEditMat(null); setMatTitle(''); setMatUrl('');}}>Cancel</button>}
+                  {editMat && <button type="button" className={styles.submitBtn} style={{background:'var(--bg-secondary)', color:'var(--text-primary)', border: '1px solid var(--border-color)'}} onClick={()=>{setEditMat(null); setMatTitle(''); setMatUrl('');}}>Cancel</button>}
                 </div>
               </form>
             </div>
@@ -827,21 +1047,21 @@ export default function AdminDashboard() {
               <div className={styles.dataTable}>
                 {filteredMaterials.map(m => (
                   <div key={m.id} className={styles.dataRow} style={{gridTemplateColumns: '2fr 1fr 1fr auto'}}>
-                    <div className={styles.dataMain}>{m.title}</div><div className={styles.dataSub}>Class {m.class}</div><div className={styles.dataSub}>{m.subject} • {m.type}</div>
+                    <div className={styles.dataMain}>{m.title}</div><div className={styles.dataSub}>Class {m.class} {m.department && m.department !== 'General' ? `(${m.department})` : ''}</div><div className={styles.dataSub}>{m.subject} • {m.type}</div>
                     <div className={styles.actionGroup}>
-                      <button className={styles.editBtn} onClick={()=>{setEditMat(m); setMatTitle(m.title); setMatUrl(m.fileUrl); setMatClass(m.class); setMatSubject(m.subject); setMatType(m.type);}}>Edit</button>
+                      <button className={styles.editBtn} onClick={()=>{setEditMat(m); setMatTitle(m.title); setMatUrl(m.fileUrl); setMatClass(m.class); setMatDept(m.department || 'All'); setMatSubject(m.subject); setMatType(m.type);}}>Edit</button>
                       <button className={styles.deleteBtn} onClick={async ()=>{ await deleteDoc(doc(db, "materials", m.id)); fetchMaterials(); }}>Delete</button>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* QUIZZES TAB */}
         {activeTab === 'quizzes' && !activeQuizForQuestions && (
-          <div>
+          <motion.div initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} transition={{duration:0.3}}>
             <div className={styles.pageHeader}><h1 className={styles.pageTitle}>Quiz Manager</h1></div>
             <div className={styles.card}>
               <h2 className={styles.cardTitle}>{editQuiz ? "Edit Quiz" : "Create New Quiz"}</h2>
@@ -851,7 +1071,7 @@ export default function AdminDashboard() {
                 <div className={styles.inputGroup}><label className={styles.label}>Time Per Question</label><input className={styles.input} type="number" value={quizTime} onChange={e=>setQuizTime(e.target.value)} required /></div>
                 <div className={styles.fullWidth} style={{ display: 'flex', gap: '1rem' }}>
                   <button type="submit" className={styles.submitBtn}>{editQuiz ? "Update Quiz" : "Create & Notify"}</button>
-                  {editQuiz && <button type="button" className={styles.submitBtn} style={{background:'var(--bg-secondary)', color:'white'}} onClick={()=>{setEditQuiz(null); setQuizTitle('');}}>Cancel</button>}
+                  {editQuiz && <button type="button" className={styles.submitBtn} style={{background:'var(--bg-secondary)', color:'var(--text-primary)', border: '1px solid var(--border-color)'}} onClick={()=>{setEditQuiz(null); setQuizTitle('');}}>Cancel</button>}
                 </div>
               </form>
             </div>
@@ -873,11 +1093,11 @@ export default function AdminDashboard() {
                 ))}
               </div>
             </div>
-          </div>
+          </motion.div>
         )}
 
         {activeTab === 'quizzes' && activeQuizForQuestions && (
-          <div>
+          <motion.div initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} transition={{duration:0.3}}>
             <button className={styles.backBtn} onClick={() => setActiveQuizForQuestions(null)}>← Back to Quizzes</button>
             <div className={styles.pageHeader}><h1 className={styles.pageTitle}>{activeQuizForQuestions.title} - Questions</h1></div>
             
@@ -920,12 +1140,12 @@ export default function AdminDashboard() {
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* NOTIFICATIONS TAB */}
         {activeTab === 'notifications' && (
-          <div>
+          <motion.div initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} transition={{duration:0.3}}>
             <div className={styles.pageHeader}><h1 className={styles.pageTitle}>Broadcast Notifications</h1></div>
             <div className={styles.card}>
               <h2 className={styles.cardTitle}>{editNotif ? "Edit Notification" : "Send Manual Alert"}</h2>
@@ -934,7 +1154,7 @@ export default function AdminDashboard() {
                 <div className={styles.inputGroup} style={{gridColumn: '1 / -1'}}><label className={styles.label}>Message</label><textarea className={styles.input} style={{height: '100px'}} value={notifMsg} onChange={e=>setNotifMsg(e.target.value)} required /></div>
                 <div className={styles.fullWidth} style={{ display: 'flex', gap: '1rem' }}>
                   <button type="submit" className={styles.submitBtn}>{editNotif ? "Update Notification" : "Send Broadcast"}</button>
-                  {editNotif && <button type="button" className={styles.submitBtn} style={{background:'var(--bg-secondary)', color:'white'}} onClick={()=>{setEditNotif(null); setNotifTitle(''); setNotifMsg('');}}>Cancel</button>}
+                  {editNotif && <button type="button" className={styles.submitBtn} style={{background:'var(--bg-secondary)', color:'var(--text-primary)', border: '1px solid var(--border-color)'}} onClick={()=>{setEditNotif(null); setNotifTitle(''); setNotifMsg('');}}>Cancel</button>}
                 </div>
               </form>
             </div>
@@ -955,8 +1175,9 @@ export default function AdminDashboard() {
                 ))}
               </div>
             </div>
-          </div>
+          </motion.div>
         )}
+        </div>
       </main>
     </div>
   );

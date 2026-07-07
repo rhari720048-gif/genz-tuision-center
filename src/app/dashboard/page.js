@@ -1,9 +1,13 @@
 "use client";
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc, collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs, orderBy, limit, writeBatch } from 'firebase/firestore';
+import { CalendarDays, Trophy, Folder, GraduationCap, BellRing, LogOut, UserCircle } from 'lucide-react';
+import { signOut } from 'firebase/auth';
+import { motion } from 'framer-motion';
 import styles from './page.module.css';
 
 export default function Dashboard() {
@@ -58,7 +62,21 @@ export default function Dashboard() {
       const notifQ = query(collection(db, "notifications"));
       const notifSnap = await getDocs(notifQ);
       const nList = [];
-      notifSnap.forEach(d => nList.push(d.data()));
+      const batch = writeBatch(db);
+      
+      notifSnap.forEach(d => {
+        const notifData = d.data();
+        nList.push({ id: d.id, ...notifData });
+        
+        // Read Receipt logic
+        if (!notifData.readBy?.includes(uData.id)) {
+          const newReadBy = [...(notifData.readBy || []), uData.id];
+          const nRef = doc(db, "notifications", d.id);
+          batch.update(nRef, { readBy: newReadBy });
+        }
+      });
+      await batch.commit();
+      
       setNotifications(nList);
     } catch(err) {
       console.error(err);
@@ -76,58 +94,64 @@ export default function Dashboard() {
   const getInitials = (name) => name ? name.substring(0, 2).toUpperCase() : "ST";
 
   const examFolders = [
-    { name: "1st Mid Term", icon: "📁" },
-    { name: "Quarterly Exam", icon: "📁" },
-    { name: "2nd Mid Term", icon: "📁" },
-    { name: "Half Yearly Exam", icon: "📁" },
-    { name: "3rd Mid Term", icon: "📁" },
-    { name: "Revision Exams", icon: "📁" },
-    { name: "Annual / Public Exam", icon: "🎓" }
+    { name: "1st Mid Term", icon: <Folder size={32} /> },
+    { name: "Quarterly Exam", icon: <Folder size={32} /> },
+    { name: "2nd Mid Term", icon: <Folder size={32} /> },
+    { name: "Half Yearly Exam", icon: <Folder size={32} /> },
+    { name: "3rd Mid Term", icon: <Folder size={32} /> },
+    { name: "Revision Exams", icon: <Folder size={32} /> },
+    { name: "Annual / Public Exam", icon: <GraduationCap size={32} /> }
   ];
 
   return (
     <div className={styles.dashboardContainer}>
       
-      {/* Profile Section */}
-      <section className={styles.profileWidget}>
-        <div className={styles.avatar}>{getInitials(userData?.name)}</div>
-        <div className={styles.profileInfo}>
-          <h1>Welcome back, {userData?.name || 'Student'}!</h1>
-          <p>{fullClassString} | Portal Access: {userData?.role?.toUpperCase()}</p>
+      {/* CRM Top Header */}
+      <header className={styles.topHeader}>
+        <div className={styles.brand}>GenZ Student Portal</div>
+        <div className={styles.headerActions}>
+          <div className={styles.profileBadge}>
+            <UserCircle size={32} />
+            <div className={styles.profileText}>
+              <span className={styles.profileName}>{userData?.name || 'Student'}</span>
+              <span className={styles.profileRole}>{fullClassString}</span>
+            </div>
+          </div>
+          <button className={styles.logoutBtn} onClick={async () => { await signOut(auth); router.push('/login'); }}><LogOut size={18}/></button>
         </div>
-      </section>
+      </header>
 
       <div className={styles.dashboardGrid}>
         <div className={styles.mainContent}>
           
-          <div className={styles.metricsRow}>
+          <motion.div initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} transition={{duration:0.4}} className={styles.metricsRow}>
             <div className={styles.metricCard}>
-              <div className={styles.metricHeader}><span className={styles.metricIcon}>📅</span> Attendance</div>
+              <div className={styles.metricHeader}><span className={styles.metricIcon}><CalendarDays size={20} /></span> Attendance</div>
               <div className={styles.metricValue}>{attendance.total === 0 ? 'N/A' : `${attendance.percentage}%`}</div>
               <div className={styles.metricSubtext}>{attendance.present}/{attendance.total} Classes Attended</div>
             </div>
             
             <div className={styles.metricCard}>
-              <div className={styles.metricHeader}><span className={styles.metricIcon}>🏆</span> Total Score</div>
+              <div className={styles.metricHeader}><span className={styles.metricIcon}><Trophy size={20} /></span> Total Score</div>
               <div className={styles.metricValue}>{userData?.totalScore || 0}</div>
               <div className={styles.metricSubtext}>Keep learning!</div>
             </div>
-          </div>
+          </motion.div>
 
-          <section className={styles.foldersSection}>
+          <motion.section initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} transition={{duration:0.5, delay: 0.1}} className={styles.foldersSection}>
             <h2 className={styles.sectionHeader}>{userData?.class ? `Class ${userData.class} Exams` : 'Exams'}</h2>
             <div className={styles.foldersGrid}>
               {examFolders.map((exam, index) => (
-                <div key={index} className={styles.folderCard}>
+                <Link href={`/materials?exam=${encodeURIComponent(exam.name)}`} key={index} className={styles.folderCard} style={{textDecoration: 'none', color: 'inherit'}}>
                   <div className={styles.folderIcon}>{exam.icon}</div>
                   <div className={styles.folderName}>{exam.name}</div>
-                </div>
+                </Link>
               ))}
             </div>
-          </section>
+          </motion.section>
         </div>
 
-        <div className={styles.sidebar}>
+        <motion.div initial={{opacity:0, x:20}} animate={{opacity:1, x:0}} transition={{duration:0.5, delay: 0.2}} className={styles.sidebar}>
           <section className={styles.progressWidget}>
             <h2 className={styles.sectionHeader}>Progress Report</h2>
             <p className={styles.progressText}>
@@ -140,7 +164,7 @@ export default function Dashboard() {
             <div className={styles.notificationList}>
               {notifications.length === 0 ? <p>No recent notifications.</p> : notifications.map((n, i) => (
                 <div key={i} className={styles.notificationItem}>
-                  <div className={styles.notifIcon}>📢</div>
+                  <div className={styles.notifIcon}><BellRing size={20} /></div>
                   <div className={styles.notifContent}>
                     <h4>{n.title}</h4>
                     <p>{n.message}</p>
@@ -149,7 +173,7 @@ export default function Dashboard() {
               ))}
             </div>
           </section>
-        </div>
+        </motion.div>
       </div>
     </div>
   );
