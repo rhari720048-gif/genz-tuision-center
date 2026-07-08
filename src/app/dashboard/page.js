@@ -9,9 +9,8 @@ import { CalendarDays, Trophy, Folder, GraduationCap, BellRing, LogOut, UserCirc
 import { signOut } from 'firebase/auth';
 import { motion } from 'framer-motion';
 import styles from './page.module.css';
-import styles from './page.module.css';
 import ChatWidget from '@/components/ChatWidget';
-import Recommendations from '@/components/dashboard/Recommendations';
+
 
 export default function Dashboard() {
   const [userData, setUserData] = useState(null);
@@ -185,7 +184,7 @@ export default function Dashboard() {
             </div>
           </motion.section>
 
-          <Recommendations userData={userData} marks={marks} />
+
         </div>
 
         <motion.div initial={{opacity:0, x:20}} animate={{opacity:1, x:0}} transition={{duration:0.5, delay: 0.2}} className={styles.sidebar}>
