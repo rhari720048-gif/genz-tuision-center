@@ -105,7 +105,7 @@ export default function AdminDashboard() {
   const [stPassword, setStPassword] = useState('');
   const [showStPassword, setShowStPassword] = useState(false);
   const [stClass, setStClass] = useState('10');
-  const [stDept, setStDept] = useState('General');
+  const [stDept, setStDept] = useState('Maths - Biology');
   const [stSubjects, setStSubjects] = useState('Tamil, English, Maths, Science, Social Science');
   const [editSt, setEditSt] = useState(null);
   const [isRegistering, setIsRegistering] = useState(false);
@@ -810,10 +810,14 @@ export default function AdminDashboard() {
                   <div className={styles.inputGroup}>
                     <label className={styles.label}>Department</label>
                     <select className={styles.input} value={stDept} onChange={e=>setStDept(e.target.value)} required>
-                      <option value="Science">Science (Bio)</option>
-                      <option value="Computer Science">Computer Science</option>
-                      <option value="Commerce">Commerce</option>
-                      <option value="Arts">Arts</option>
+                      <option value="Maths - Biology">Maths - Biology</option>
+                      <option value="Maths - Computer Science">Maths - Computer Science</option>
+                      <option value="Pure Science">Pure Science</option>
+                      <option value="Computer Applications">Computer Applications</option>
+                      <option value="Commerce - Business Maths">Commerce - Business Maths</option>
+                      <option value="Commerce - Computer Applications">Commerce - Computer Applications</option>
+                      <option value="Commerce - General">Commerce - General</option>
+                      <option value="Arts - Humanities">Arts - Humanities</option>
                       <option value="Vocational">Vocational</option>
                     </select>
                   </div>
@@ -1129,11 +1133,15 @@ export default function AdminDashboard() {
                   <div className={styles.inputGroup}>
                     <label className={styles.label}>Department</label>
                     <select className={styles.input} value={matDept} onChange={e=>setMatDept(e.target.value)} required>
-                      <option value="All">All</option>
-                      <option value="Science">Science (Bio)</option>
-                      <option value="Computer Science">Computer Science</option>
-                      <option value="Commerce">Commerce</option>
-                      <option value="Arts">Arts</option>
+                      <option value="All">All Departments</option>
+                      <option value="Maths - Biology">Maths - Biology</option>
+                      <option value="Maths - Computer Science">Maths - Computer Science</option>
+                      <option value="Pure Science">Pure Science</option>
+                      <option value="Computer Applications">Computer Applications</option>
+                      <option value="Commerce - Business Maths">Commerce - Business Maths</option>
+                      <option value="Commerce - Computer Applications">Commerce - Computer Applications</option>
+                      <option value="Commerce - General">Commerce - General</option>
+                      <option value="Arts - Humanities">Arts - Humanities</option>
                       <option value="Vocational">Vocational</option>
                     </select>
                   </div>
@@ -1211,11 +1219,15 @@ export default function AdminDashboard() {
                       <div className={styles.inputGroup}>
                         <label className={styles.label}>Department</label>
                         <select className={styles.input} value={quizDept} onChange={e=>setQuizDept(e.target.value)} required>
-                          <option value="All">All</option>
-                          <option value="Science">Science (Bio)</option>
-                          <option value="Computer Science">Computer Science</option>
-                          <option value="Commerce">Commerce</option>
-                          <option value="Arts">Arts</option>
+                          <option value="All">All Departments</option>
+                          <option value="Maths - Biology">Maths - Biology</option>
+                          <option value="Maths - Computer Science">Maths - Computer Science</option>
+                          <option value="Pure Science">Pure Science</option>
+                          <option value="Computer Applications">Computer Applications</option>
+                          <option value="Commerce - Business Maths">Commerce - Business Maths</option>
+                          <option value="Commerce - Computer Applications">Commerce - Computer Applications</option>
+                          <option value="Commerce - General">Commerce - General</option>
+                          <option value="Arts - Humanities">Arts - Humanities</option>
                           <option value="Vocational">Vocational</option>
                         </select>
                       </div>
@@ -1245,11 +1257,15 @@ export default function AdminDashboard() {
                       <div className={styles.inputGroup}>
                         <label className={styles.label}>Department</label>
                         <select className={styles.input} value={quizDept} onChange={e=>setQuizDept(e.target.value)} required>
-                          <option value="All">All</option>
-                          <option value="Science">Science (Bio)</option>
-                          <option value="Computer Science">Computer Science</option>
-                          <option value="Commerce">Commerce</option>
-                          <option value="Arts">Arts</option>
+                          <option value="All">All Departments</option>
+                          <option value="Maths - Biology">Maths - Biology</option>
+                          <option value="Maths - Computer Science">Maths - Computer Science</option>
+                          <option value="Pure Science">Pure Science</option>
+                          <option value="Computer Applications">Computer Applications</option>
+                          <option value="Commerce - Business Maths">Commerce - Business Maths</option>
+                          <option value="Commerce - Computer Applications">Commerce - Computer Applications</option>
+                          <option value="Commerce - General">Commerce - General</option>
+                          <option value="Arts - Humanities">Arts - Humanities</option>
                           <option value="Vocational">Vocational</option>
                         </select>
                       </div>
@@ -1356,10 +1372,14 @@ export default function AdminDashboard() {
                     <label className={styles.label}>Target Department</label>
                     <select className={styles.input} value={notifDept} onChange={e=>setNotifDept(e.target.value)} required>
                       <option value="All">All Departments</option>
-                      <option value="Science">Science (Bio)</option>
-                      <option value="Computer Science">Computer Science</option>
-                      <option value="Commerce">Commerce</option>
-                      <option value="Arts">Arts</option>
+                      <option value="Maths - Biology">Maths - Biology</option>
+                      <option value="Maths - Computer Science">Maths - Computer Science</option>
+                      <option value="Pure Science">Pure Science</option>
+                      <option value="Computer Applications">Computer Applications</option>
+                      <option value="Commerce - Business Maths">Commerce - Business Maths</option>
+                      <option value="Commerce - Computer Applications">Commerce - Computer Applications</option>
+                      <option value="Commerce - General">Commerce - General</option>
+                      <option value="Arts - Humanities">Arts - Humanities</option>
                       <option value="Vocational">Vocational</option>
                     </select>
                   </div>
