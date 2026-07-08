@@ -134,6 +134,7 @@ export default function AdminDashboard() {
 
   const [quizTitle, setQuizTitle] = useState('');
   const [quizClass, setQuizClass] = useState('10');
+  const [quizDept, setQuizDept] = useState('All');
   const [quizTime, setQuizTime] = useState('30');
   const [editQuiz, setEditQuiz] = useState(null);
   const [quizGenMode, setQuizGenMode] = useState('manual');
@@ -349,7 +350,7 @@ export default function AdminDashboard() {
 
 
 
-  const generateQuizFromTopic = async (topic, numQ, qClass, qTime) => {
+  const generateQuizFromTopic = async (topic, numQ, qClass, qDept, qTime) => {
     setIsGenerating(true);
     const loadingToast = toast.loading(`Generating AI Quiz for ${topic}...`);
     try {
@@ -364,6 +365,7 @@ export default function AdminDashboard() {
       const newQuizId = await addDoc(collection(db, "quizzes"), {
         title: `AI Quiz: ${topic}`,
         class: qClass,
+        department: qClass === '10' ? 'General' : qDept,
         timePerQ: Number(qTime),
         createdAt: serverTimestamp(),
         questions: data.questions || []
@@ -394,7 +396,7 @@ export default function AdminDashboard() {
       await addDoc(collection(db, "notifications"), { title: `New Material: ${matTitle}`, message: `A new ${matType} for ${matSubject} has been uploaded.`, createdAt: serverTimestamp() });
       
       if (autoGenMatQuiz) {
-         await generateQuizFromTopic(matTitle, 5, matClass, 30);
+         await generateQuizFromTopic(matTitle, 5, matClass, matClass === '10' ? 'General' : matDept, 30);
       }
 
       // Send Email to targeted students
@@ -428,18 +430,18 @@ export default function AdminDashboard() {
   const handleAIQuizSubmit = async (e) => {
     e.preventDefault();
     if(!quizGenTopic) return toast.error("Please enter a topic");
-    await generateQuizFromTopic(quizGenTopic, quizGenNumQ, quizClass, quizTime);
+    await generateQuizFromTopic(quizGenTopic, quizGenNumQ, quizClass, quizClass === '10' ? 'General' : quizDept, quizTime);
     setQuizGenTopic('');
   };
 
   const handleQuiz = async (e) => {
     e.preventDefault();
     if (editQuiz) {
-      await updateDoc(doc(db, "quizzes", editQuiz.id), { title: quizTitle, class: quizClass, timePerQ: Number(quizTime) });
+      await updateDoc(doc(db, "quizzes", editQuiz.id), { title: quizTitle, class: quizClass, department: quizClass === '10' ? 'General' : quizDept, timePerQ: Number(quizTime) });
       setEditQuiz(null);
       toast.success("Quiz Updated");
     } else {
-      await addDoc(collection(db, "quizzes"), { title: quizTitle, class: quizClass, timePerQ: Number(quizTime), createdAt: serverTimestamp(), questions: [] });
+      await addDoc(collection(db, "quizzes"), { title: quizTitle, class: quizClass, department: quizClass === '10' ? 'General' : quizDept, timePerQ: Number(quizTime), createdAt: serverTimestamp(), questions: [] });
       await addDoc(collection(db, "notifications"), { title: `New Quiz: ${quizTitle}`, message: `A new quiz has been created for Class ${quizClass}. Check your portal!`, createdAt: serverTimestamp() });
       toast.success("Quiz Created & Notification Auto-Sent!");
     }
@@ -1155,7 +1157,7 @@ export default function AdminDashboard() {
                   <div key={m.id} className={styles.dataRow} style={{gridTemplateColumns: '2fr 1fr 1fr auto'}}>
                     <div className={styles.dataMain}>{m.title}</div><div className={styles.dataSub}>Class {m.class} {m.department && m.department !== 'General' ? `(${m.department})` : ''}</div><div className={styles.dataSub}>{m.subject} • {m.type}</div>
                     <div className={styles.actionGroup}>
-                      <button className={styles.editBtn} style={{background: 'rgba(6, 214, 160, 0.1)', color: 'var(--accent-secondary)'}} onClick={() => generateQuizFromTopic(m.title, 5, m.class, 30)} disabled={isGenerating}>🤖 AI Quiz</button>
+                      <button className={styles.editBtn} style={{background: 'rgba(6, 214, 160, 0.1)', color: 'var(--accent-secondary)'}} onClick={() => generateQuizFromTopic(m.title, 5, m.class, m.class === '10' ? 'General' : m.department, 30)} disabled={isGenerating}>🤖 AI Quiz</button>
                       <button className={styles.editBtn} onClick={()=>{setEditMat(m); setMatTitle(m.title); setMatUrl(m.fileUrl); setMatClass(m.class); setMatDept(m.department || 'All'); setMatSubject(m.subject); setMatType(m.type);}}>Edit</button>
                       <button className={styles.deleteBtn} onClick={async ()=>{ await deleteDoc(doc(db, "materials", m.id)); fetchMaterials(); }}>Delete</button>
                     </div>
@@ -1189,7 +1191,27 @@ export default function AdminDashboard() {
                   <h2 className={styles.cardTitle}>{editQuiz ? "Edit Quiz" : "Create New Quiz"}</h2>
                   <form onSubmit={handleQuiz} className={styles.formGrid}>
                     <div className={styles.inputGroup}><label className={styles.label}>Title</label><input className={styles.input} value={quizTitle} onChange={e=>setQuizTitle(e.target.value)} required /></div>
-                    <div className={styles.inputGroup}><label className={styles.label}>Class</label><input className={styles.input} value={quizClass} onChange={e=>setQuizClass(e.target.value)} required /></div>
+                    <div className={styles.inputGroup}>
+                      <label className={styles.label}>Class</label>
+                      <select className={styles.input} value={quizClass} onChange={e=>setQuizClass(e.target.value)} required>
+                        <option value="10">10</option>
+                        <option value="11">11</option>
+                        <option value="12">12</option>
+                      </select>
+                    </div>
+                    {quizClass !== '10' && (
+                      <div className={styles.inputGroup}>
+                        <label className={styles.label}>Department</label>
+                        <select className={styles.input} value={quizDept} onChange={e=>setQuizDept(e.target.value)} required>
+                          <option value="All">All</option>
+                          <option value="Science">Science (Bio)</option>
+                          <option value="Computer Science">Computer Science</option>
+                          <option value="Commerce">Commerce</option>
+                          <option value="Arts">Arts</option>
+                          <option value="Vocational">Vocational</option>
+                        </select>
+                      </div>
+                    )}
                     <div className={styles.inputGroup}><label className={styles.label}>Time Per Question</label><input className={styles.input} type="number" value={quizTime} onChange={e=>setQuizTime(e.target.value)} required /></div>
                     <div className={styles.fullWidth} style={{ display: 'flex', gap: '1rem' }}>
                       <button type="submit" className={styles.submitBtn}>{editQuiz ? "Update Quiz" : "Create & Notify"}</button>
@@ -1203,7 +1225,27 @@ export default function AdminDashboard() {
                   <p style={{color: 'var(--text-secondary)', marginBottom: '1.5rem'}}>Enter any topic and AI will instantly generate a full multiple choice quiz for you.</p>
                   <form onSubmit={handleAIQuizSubmit} className={styles.formGrid}>
                     <div className={styles.inputGroup} style={{gridColumn: '1 / -1'}}><label className={styles.label}>Topic / Title</label><input className={styles.input} value={quizGenTopic} onChange={e=>setQuizGenTopic(e.target.value)} placeholder="e.g. Photosynthesis, World War 2, Python Basics..." required /></div>
-                    <div className={styles.inputGroup}><label className={styles.label}>Target Class</label><input className={styles.input} value={quizClass} onChange={e=>setQuizClass(e.target.value)} required /></div>
+                    <div className={styles.inputGroup}>
+                      <label className={styles.label}>Target Class</label>
+                      <select className={styles.input} value={quizClass} onChange={e=>setQuizClass(e.target.value)} required>
+                        <option value="10">10</option>
+                        <option value="11">11</option>
+                        <option value="12">12</option>
+                      </select>
+                    </div>
+                    {quizClass !== '10' && (
+                      <div className={styles.inputGroup}>
+                        <label className={styles.label}>Department</label>
+                        <select className={styles.input} value={quizDept} onChange={e=>setQuizDept(e.target.value)} required>
+                          <option value="All">All</option>
+                          <option value="Science">Science (Bio)</option>
+                          <option value="Computer Science">Computer Science</option>
+                          <option value="Commerce">Commerce</option>
+                          <option value="Arts">Arts</option>
+                          <option value="Vocational">Vocational</option>
+                        </select>
+                      </div>
+                    )}
                     <div className={styles.inputGroup}><label className={styles.label}>Number of Questions</label><input className={styles.input} type="number" min="1" max="20" value={quizGenNumQ} onChange={e=>setQuizGenNumQ(e.target.value)} required /></div>
                     <div className={styles.inputGroup}><label className={styles.label}>Time Per Question (sec)</label><input className={styles.input} type="number" value={quizTime} onChange={e=>setQuizTime(e.target.value)} required /></div>
                     <div className={styles.fullWidth}>
@@ -1223,7 +1265,7 @@ export default function AdminDashboard() {
               <div className={styles.dataTable}>
                 {filteredQuizzes.map(q => (
                   <div key={q.id} className={styles.dataRow} style={{gridTemplateColumns: '2fr 1fr auto'}}>
-                    <div className={styles.dataMain}>{q.title}</div><div className={styles.dataSub}>Class {q.class} • {q.timePerQ}s</div>
+                    <div className={styles.dataMain}>{q.title}</div><div className={styles.dataSub}>Class {q.class} {q.department && q.department !== 'General' ? `(${q.department})` : ''} • {q.timePerQ}s</div>
                     <div className={styles.actionGroup}>
                       <button className={styles.editBtn} style={{background: 'rgba(6, 214, 160, 0.1)', color: 'var(--accent-secondary)'}} onClick={() => setActiveQuizForQuestions(q)}>Questions</button>
                       <button className={styles.editBtn} onClick={()=>{setEditQuiz(q); setQuizTitle(q.title); setQuizClass(q.class); setQuizTime(q.timePerQ);}}>Edit</button>

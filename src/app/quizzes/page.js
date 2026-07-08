@@ -36,19 +36,35 @@ export default function QuizzesPage() {
         if (userDoc.exists()) {
           const uData = { id: user.uid, ...userDoc.data() };
           setUserData(uData);
-          fetchQuizzes(uData.class);
+          fetchQuizzes(uData);
         }
       }
     });
     return () => unsubscribe();
   }, []);
 
-  const fetchQuizzes = async (studentClass) => {
+  const fetchQuizzes = async (userData) => {
     try {
-      const q = query(collection(db, "quizzes"), where("class", "==", studentClass));
+      const q = query(collection(db, "quizzes")); // Removed where clause since we filter client-side for robust matching
       const snap = await getDocs(q);
-      const list = [];
+      let list = [];
       snap.forEach(d => list.push({ id: d.id, ...d.data() }));
+
+      if (userData && userData.role !== 'admin') {
+        const studentClass = userData.class;
+        const studentDept = userData.department;
+
+        list = list.filter(q => {
+          const classMatch = !q.class || q.class === 'All' || String(q.class) === String(studentClass);
+          if (!classMatch) return false;
+
+          const deptMatch = !q.department || q.department === 'All' || q.department === 'General' || String(q.class) === '10' || String(q.department) === String(studentDept) || String(studentDept) === 'General';
+          if (!deptMatch) return false;
+
+          return true;
+        });
+      }
+
       setQuizzes(list);
       setLoading(false);
     } catch(err) {

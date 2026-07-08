@@ -40,7 +40,7 @@ export default function MaterialsPage() {
           const classMatch = !m.class || m.class === 'All' || String(m.class) === String(studentClass);
           if (!classMatch) return false;
 
-          const deptMatch = !m.department || m.department === 'All' || String(m.class) === '10' || String(m.department) === String(studentDept) || String(studentDept) === 'General';
+          const deptMatch = !m.department || m.department === 'All' || m.department === 'General' || String(m.class) === '10' || String(m.department) === String(studentDept) || String(studentDept) === 'General';
           if (!deptMatch) return false;
 
           const subjMatch = !m.subject || m.subject === 'All' || !studentSubjects || studentSubjects.includes(m.subject.trim().toLowerCase());
