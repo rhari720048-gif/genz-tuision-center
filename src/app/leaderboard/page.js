@@ -4,7 +4,6 @@ import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { motion } from 'framer-motion';
 import { Trophy, Medal, Award } from 'lucide-react';
-import Navbar from '@/components/Navbar';
 
 export default function LeaderboardPage() {
   const [leaders, setLeaders] = useState([]);
