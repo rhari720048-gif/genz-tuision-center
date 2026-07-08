@@ -77,6 +77,14 @@ export default function Navbar() {
             <Trophy size={22} className={styles.navIcon} />
             <span className={styles.navText}>Report</span>
           </Link>
+          <Link href="/leaderboard" className={`${styles.link} ${pathname === '/leaderboard' ? styles.active : ''}`}>
+            <Trophy size={22} className={styles.navIcon} style={{color: 'gold'}} />
+            <span className={styles.navText}>Leaderboard</span>
+          </Link>
+          <Link href="/planner" className={`${styles.link} ${pathname === '/planner' ? styles.active : ''}`}>
+            <BookOpen size={22} className={styles.navIcon} style={{color: 'var(--accent-secondary)'}} />
+            <span className={styles.navText}>Planner</span>
+          </Link>
         </div>
       )}
 

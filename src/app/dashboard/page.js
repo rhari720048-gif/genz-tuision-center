@@ -4,12 +4,14 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc, collection, query, where, getDocs, orderBy, limit, writeBatch } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs, orderBy, limit, writeBatch, addDoc, serverTimestamp } from 'firebase/firestore';
 import { CalendarDays, Trophy, Folder, GraduationCap, BellRing, LogOut, UserCircle, X } from 'lucide-react';
 import { signOut } from 'firebase/auth';
 import { motion } from 'framer-motion';
 import styles from './page.module.css';
+import styles from './page.module.css';
 import ChatWidget from '@/components/ChatWidget';
+import Recommendations from '@/components/dashboard/Recommendations';
 
 export default function Dashboard() {
   const [userData, setUserData] = useState(null);
@@ -39,8 +41,28 @@ export default function Dashboard() {
     return () => unsubscribe();
   }, [router]);
 
+  const checkAndMarkAttendance = async (uData) => {
+    try {
+      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+      const attQ = query(collection(db, "attendance"), where("studentId", "==", uData.id), where("date", "==", today));
+      const attSnap = await getDocs(attQ);
+      
+      if (attSnap.empty) {
+        await addDoc(collection(db, "attendance"), {
+          studentId: uData.id,
+          date: today,
+          status: 'Present',
+          timestamp: serverTimestamp()
+        });
+      }
+    } catch (err) {
+      console.error("Error marking attendance", err);
+    }
+  };
+
   const fetchDashboardData = async (uData) => {
     try {
+      await checkAndMarkAttendance(uData);
       // Fetch Marks
       const marksQ = query(collection(db, "marks"), where("studentId", "==", uData.id));
       const marksSnap = await getDocs(marksQ);
@@ -162,6 +184,8 @@ export default function Dashboard() {
               ))}
             </div>
           </motion.section>
+
+          <Recommendations userData={userData} marks={marks} />
         </div>
 
         <motion.div initial={{opacity:0, x:20}} animate={{opacity:1, x:0}} transition={{duration:0.5, delay: 0.2}} className={styles.sidebar}>

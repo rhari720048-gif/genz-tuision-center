@@ -1,0 +1,64 @@
+.plannerLayout {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 2rem;
+}
+
+@media (max-width: 768px) {
+  .plannerLayout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.calendarSection {
+  display: flex;
+  flex-direction: column;
+}
+
+.tasksSection {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Customizing React Calendar for Dark Mode */
+.customCalendar {
+  width: 100% !important;
+  background: transparent !important;
+  border: none !important;
+  font-family: var(--font-main) !important;
+  color: var(--text-primary) !important;
+}
+
+.customCalendar button {
+  color: var(--text-primary) !important;
+  border-radius: 8px !important;
+}
+
+.customCalendar button:enabled:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.customCalendar .react-calendar__navigation button:disabled {
+  background-color: transparent !important;
+  opacity: 0.5;
+}
+
+.customCalendar .react-calendar__month-view__days__day--weekend {
+  color: var(--danger) !important;
+}
+
+.customCalendar .react-calendar__tile--now {
+  background: rgba(79, 70, 229, 0.2) !important;
+  color: var(--accent-primary) !important;
+  font-weight: bold;
+}
+
+.customCalendar .react-calendar__tile--active {
+  background: var(--accent-primary) !important;
+  color: white !important;
+}
+
+.customCalendar .react-calendar__tile--active:enabled:hover,
+.customCalendar .react-calendar__tile--active:enabled:focus {
+  background: var(--accent-hover) !important;
+}

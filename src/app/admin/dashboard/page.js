@@ -5,7 +5,8 @@ import { db, auth, firebaseConfig } from '@/lib/firebase';
 import { initializeApp, getApps } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword, signOut as secondarySignOut, onAuthStateChanged, signOut, signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
-import { LayoutDashboard, Users, ClipboardList, Banknote, BookOpen, FileQuestion, Bell, LogOut, Search, UserCircle, PlusCircle, FileUp, Download, Menu, X, CheckCircle2 } from 'lucide-react';
+import Link from 'next/link';
+import { LayoutDashboard, Users, ClipboardList, Banknote, BookOpen, FileQuestion, Bell, LogOut, Search, UserCircle, PlusCircle, FileUp, Download, Menu, X, CheckCircle2, BrainCircuit } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from './page.module.css';
 import toast from 'react-hot-toast';
@@ -612,6 +613,7 @@ export default function AdminDashboard() {
           <button className={`${styles.navItem} ${activeTab === 'fees' ? styles.active : ''}`} onClick={() => {setActiveTab('fees'); setIsMobileMenuOpen(false);}}><Banknote size={20}/> Fees</button>
           <button className={`${styles.navItem} ${activeTab === 'materials' ? styles.active : ''}`} onClick={() => {setActiveTab('materials'); setIsMobileMenuOpen(false);}}><BookOpen size={20}/> Materials</button>
           <button className={`${styles.navItem} ${activeTab === 'quizzes' ? styles.active : ''}`} onClick={() => {setActiveTab('quizzes'); setIsMobileMenuOpen(false);}}><FileQuestion size={20}/> Quizzes</button>
+          <Link href="/admin/quiz-generator" className={styles.navItem} style={{ textDecoration: 'none' }}><BrainCircuit size={20} color="var(--accent-secondary)"/> AI Generator</Link>
           <button className={`${styles.navItem} ${activeTab === 'notifications' ? styles.active : ''}`} onClick={() => {setActiveTab('notifications'); setIsMobileMenuOpen(false);}}><Bell size={20}/> Alerts</button>
         </div>
       </aside>
@@ -817,7 +819,12 @@ export default function AdminDashboard() {
 
         {activeTab === 'students' && selectedStudent && (
           <motion.div initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} transition={{duration:0.3}}>
-            <button className={styles.backBtn} onClick={() => setSelectedStudent(null)}>← Back to Students</button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <button className={styles.backBtn} onClick={() => setSelectedStudent(null)}>← Back to Students</button>
+              <button className="btn-primary" onClick={() => window.print()} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--accent-secondary)' }}>
+                🖨️ Print Report
+              </button>
+            </div>
             <div className={styles.profileHeader}>
               <div className={styles.profileAvatar}>{selectedStudent.name[0]}</div>
               <div className={styles.profileInfo}>

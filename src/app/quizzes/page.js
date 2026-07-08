@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from 'react';
-import { collection, getDocs, query, where, addDoc, serverTimestamp, doc, getDoc } from 'firebase/firestore';
+import { collection, getDocs, query, where, addDoc, serverTimestamp, doc, getDoc, updateDoc, increment } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -106,8 +106,17 @@ export default function QuizzesPage() {
         max: maxScore,
         date: serverTimestamp()
       });
+
+      // Gamification: Update user points
+      if (achievedScore > 0) {
+        const userRef = doc(db, "users", userData.id);
+        await updateDoc(userRef, {
+          points: increment(achievedScore),
+          totalScore: increment(achievedScore) // assuming we want to keep totalScore as well
+        });
+      }
     } catch(err) {
-      console.error("Failed to save score", err);
+      console.error("Failed to save score or update points", err);
     }
   };
 
