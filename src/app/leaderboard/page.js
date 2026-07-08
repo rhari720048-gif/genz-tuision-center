@@ -50,14 +50,24 @@ export default function LeaderboardPage() {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.1 }}
+              whileHover={{ scale: 1.02, translateX: 5 }}
               className="glass-panel"
               style={{ 
-                padding: '1.5rem', 
-                borderRadius: '12px', 
+                padding: '2rem 1.5rem', 
+                borderRadius: '16px', 
                 display: 'flex', 
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                background: index === 0 ? 'rgba(255, 215, 0, 0.1)' : index === 1 ? 'rgba(192, 192, 192, 0.1)' : index === 2 ? 'rgba(205, 127, 50, 0.1)' : 'var(--bg-card)'
+                background: index === 0 ? 'linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 215, 0, 0.05))' : 
+                            index === 1 ? 'linear-gradient(135deg, rgba(192, 192, 192, 0.15), rgba(192, 192, 192, 0.05))' : 
+                            index === 2 ? 'linear-gradient(135deg, rgba(205, 127, 50, 0.15), rgba(205, 127, 50, 0.05))' : 
+                            'rgba(255, 255, 255, 0.7)',
+                border: index <= 2 ? `1px solid ${index===0?'rgba(255,215,0,0.3)':index===1?'rgba(192,192,192,0.3)':'rgba(205,127,50,0.3)'}` : '1px solid rgba(255,255,255,0.9)',
+                boxShadow: 'var(--shadow-sm)',
+                transition: 'all var(--transition-fast)',
+                backdropFilter: 'blur(20px)',
+                position: 'relative',
+                overflow: 'hidden'
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>

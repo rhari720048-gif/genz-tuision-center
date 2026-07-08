@@ -6,7 +6,7 @@ import { initializeApp, getApps } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword, signOut as secondarySignOut, onAuthStateChanged, signOut, signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { LayoutDashboard, Users, ClipboardList, Banknote, BookOpen, FileQuestion, Bell, LogOut, Search, UserCircle, PlusCircle, FileUp, Download, Menu, X, CheckCircle2, BrainCircuit } from 'lucide-react';
+import { LayoutDashboard, Users, ClipboardList, Banknote, BookOpen, FileQuestion, Bell, LogOut, Search, UserCircle, PlusCircle, FileUp, Download, Menu, X, CheckCircle2, BrainCircuit, Printer, Bot, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from './page.module.css';
 import toast from 'react-hot-toast';
@@ -663,7 +663,7 @@ export default function AdminDashboard() {
       {/* SIDEBAR */}
       <aside className={`${styles.sidebar} ${isMobileMenuOpen ? styles.open : ''}`}>
         <div className={styles.brand} style={{display:'flex', justifyContent:'space-between', alignItems:'center', fontSize: '1.5rem'}}>
-          GenZ Tuition CRM
+          <img src="https://ik.imagekit.io/muthurasu/GEN%20Z/GEN_Z_LOGO__2_-removebg-preview.png.png?updatedAt=1782569180718" alt="GenZ Tuition Logo" style={{ height: '35px', objectFit: 'contain' }} />
           <button className={styles.hamburgerBtn} onClick={() => setIsMobileMenuOpen(false)} style={{display: isMobileMenuOpen ? 'block' : 'none'}}>
             <X size={24} />
           </button>
@@ -810,15 +810,20 @@ export default function AdminDashboard() {
                   <div className={styles.inputGroup}>
                     <label className={styles.label}>Department</label>
                     <select className={styles.input} value={stDept} onChange={e=>setStDept(e.target.value)} required>
-                      <option value="Maths - Biology">Maths - Biology</option>
-                      <option value="Maths - Computer Science">Maths - Computer Science</option>
-                      <option value="Pure Science">Pure Science</option>
-                      <option value="Computer Applications">Computer Applications</option>
-                      <option value="Commerce - Business Maths">Commerce - Business Maths</option>
-                      <option value="Commerce - Computer Applications">Commerce - Computer Applications</option>
-                      <option value="Commerce - General">Commerce - General</option>
-                      <option value="Arts - Humanities">Arts - Humanities</option>
-                      <option value="Vocational">Vocational</option>
+                      <option value="TN State - Maths Biology">TN State - Maths Biology</option>
+                      <option value="TN State - Maths Computer Science">TN State - Maths Computer Science</option>
+                      <option value="TN State - Pure Science (Botany/Zoology)">TN State - Pure Science (Botany/Zoology)</option>
+                      <option value="TN State - Commerce & Business Maths">TN State - Commerce & Business Maths</option>
+                      <option value="TN State - Commerce & Computer Applications">TN State - Commerce & Computer Applications</option>
+                      <option value="TN State - Commerce General">TN State - Commerce General</option>
+                      <option value="TN State - Arts/Humanities">TN State - Arts/Humanities</option>
+                      <option value="TN State - Vocational">TN State - Vocational</option>
+                      <option value="CBSE - Science (PCM)">CBSE - Science (PCM)</option>
+                      <option value="CBSE - Science (PCB)">CBSE - Science (PCB)</option>
+                      <option value="CBSE - Science (PCMB)">CBSE - Science (PCMB)</option>
+                      <option value="CBSE - Commerce with Maths">CBSE - Commerce with Maths</option>
+                      <option value="CBSE - Commerce without Maths">CBSE - Commerce without Maths</option>
+                      <option value="CBSE - Humanities/Arts">CBSE - Humanities/Arts</option>
                     </select>
                   </div>
                 )}
@@ -887,7 +892,7 @@ export default function AdminDashboard() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <button className={styles.backBtn} onClick={() => setSelectedStudent(null)}>← Back to Students</button>
               <button className="btn-primary" onClick={() => window.print()} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--accent-secondary)' }}>
-                🖨️ Print Report
+                <Printer size={18} /> Print Report
               </button>
             </div>
             <div className={styles.profileHeader}>
@@ -1134,15 +1139,20 @@ export default function AdminDashboard() {
                     <label className={styles.label}>Department</label>
                     <select className={styles.input} value={matDept} onChange={e=>setMatDept(e.target.value)} required>
                       <option value="All">All Departments</option>
-                      <option value="Maths - Biology">Maths - Biology</option>
-                      <option value="Maths - Computer Science">Maths - Computer Science</option>
-                      <option value="Pure Science">Pure Science</option>
-                      <option value="Computer Applications">Computer Applications</option>
-                      <option value="Commerce - Business Maths">Commerce - Business Maths</option>
-                      <option value="Commerce - Computer Applications">Commerce - Computer Applications</option>
-                      <option value="Commerce - General">Commerce - General</option>
-                      <option value="Arts - Humanities">Arts - Humanities</option>
-                      <option value="Vocational">Vocational</option>
+                      <option value="TN State - Maths Biology">TN State - Maths Biology</option>
+                      <option value="TN State - Maths Computer Science">TN State - Maths Computer Science</option>
+                      <option value="TN State - Pure Science (Botany/Zoology)">TN State - Pure Science (Botany/Zoology)</option>
+                      <option value="TN State - Commerce & Business Maths">TN State - Commerce & Business Maths</option>
+                      <option value="TN State - Commerce & Computer Applications">TN State - Commerce & Computer Applications</option>
+                      <option value="TN State - Commerce General">TN State - Commerce General</option>
+                      <option value="TN State - Arts/Humanities">TN State - Arts/Humanities</option>
+                      <option value="TN State - Vocational">TN State - Vocational</option>
+                      <option value="CBSE - Science (PCM)">CBSE - Science (PCM)</option>
+                      <option value="CBSE - Science (PCB)">CBSE - Science (PCB)</option>
+                      <option value="CBSE - Science (PCMB)">CBSE - Science (PCMB)</option>
+                      <option value="CBSE - Commerce with Maths">CBSE - Commerce with Maths</option>
+                      <option value="CBSE - Commerce without Maths">CBSE - Commerce without Maths</option>
+                      <option value="CBSE - Humanities/Arts">CBSE - Humanities/Arts</option>
                     </select>
                   </div>
                 )}
@@ -1173,7 +1183,7 @@ export default function AdminDashboard() {
                   <div key={m.id} className={styles.dataRow} style={{gridTemplateColumns: '2fr 1fr 1fr auto'}}>
                     <div className={styles.dataMain}>{m.title}</div><div className={styles.dataSub}>Class {m.class} {m.department && m.department !== 'General' ? `(${m.department})` : ''}</div><div className={styles.dataSub}>{m.subject} • {m.type}</div>
                     <div className={styles.actionGroup}>
-                      <button className={styles.editBtn} style={{background: 'rgba(6, 214, 160, 0.1)', color: 'var(--accent-secondary)'}} onClick={() => generateQuizFromTopic(m.title, 5, m.class, m.class === '10' ? 'General' : m.department, 30)} disabled={isGenerating}>🤖 AI Quiz</button>
+                      <button className={styles.editBtn} style={{background: 'rgba(6, 214, 160, 0.1)', color: 'var(--accent-secondary)', display: 'flex', alignItems: 'center', gap: '4px'}} onClick={() => generateQuizFromTopic(m.title, 5, m.class, m.class === '10' ? 'General' : m.department, 30)} disabled={isGenerating}><Bot size={14} /> AI Quiz</button>
                       <button className={styles.editBtn} onClick={()=>{setEditMat(m); setMatTitle(m.title); setMatUrl(m.fileUrl); setMatClass(m.class); setMatDept(m.department || 'All'); setMatSubject(m.subject); setMatType(m.type);}}>Edit</button>
                       <button className={styles.deleteBtn} onClick={async ()=>{ await deleteDoc(doc(db, "materials", m.id)); fetchMaterials(); }}>Delete</button>
                     </div>
@@ -1220,15 +1230,20 @@ export default function AdminDashboard() {
                         <label className={styles.label}>Department</label>
                         <select className={styles.input} value={quizDept} onChange={e=>setQuizDept(e.target.value)} required>
                           <option value="All">All Departments</option>
-                          <option value="Maths - Biology">Maths - Biology</option>
-                          <option value="Maths - Computer Science">Maths - Computer Science</option>
-                          <option value="Pure Science">Pure Science</option>
-                          <option value="Computer Applications">Computer Applications</option>
-                          <option value="Commerce - Business Maths">Commerce - Business Maths</option>
-                          <option value="Commerce - Computer Applications">Commerce - Computer Applications</option>
-                          <option value="Commerce - General">Commerce - General</option>
-                          <option value="Arts - Humanities">Arts - Humanities</option>
-                          <option value="Vocational">Vocational</option>
+                          <option value="TN State - Maths Biology">TN State - Maths Biology</option>
+                          <option value="TN State - Maths Computer Science">TN State - Maths Computer Science</option>
+                          <option value="TN State - Pure Science (Botany/Zoology)">TN State - Pure Science (Botany/Zoology)</option>
+                          <option value="TN State - Commerce & Business Maths">TN State - Commerce & Business Maths</option>
+                          <option value="TN State - Commerce & Computer Applications">TN State - Commerce & Computer Applications</option>
+                          <option value="TN State - Commerce General">TN State - Commerce General</option>
+                          <option value="TN State - Arts/Humanities">TN State - Arts/Humanities</option>
+                          <option value="TN State - Vocational">TN State - Vocational</option>
+                          <option value="CBSE - Science (PCM)">CBSE - Science (PCM)</option>
+                          <option value="CBSE - Science (PCB)">CBSE - Science (PCB)</option>
+                          <option value="CBSE - Science (PCMB)">CBSE - Science (PCMB)</option>
+                          <option value="CBSE - Commerce with Maths">CBSE - Commerce with Maths</option>
+                          <option value="CBSE - Commerce without Maths">CBSE - Commerce without Maths</option>
+                          <option value="CBSE - Humanities/Arts">CBSE - Humanities/Arts</option>
                         </select>
                       </div>
                     )}
@@ -1258,23 +1273,28 @@ export default function AdminDashboard() {
                         <label className={styles.label}>Department</label>
                         <select className={styles.input} value={quizDept} onChange={e=>setQuizDept(e.target.value)} required>
                           <option value="All">All Departments</option>
-                          <option value="Maths - Biology">Maths - Biology</option>
-                          <option value="Maths - Computer Science">Maths - Computer Science</option>
-                          <option value="Pure Science">Pure Science</option>
-                          <option value="Computer Applications">Computer Applications</option>
-                          <option value="Commerce - Business Maths">Commerce - Business Maths</option>
-                          <option value="Commerce - Computer Applications">Commerce - Computer Applications</option>
-                          <option value="Commerce - General">Commerce - General</option>
-                          <option value="Arts - Humanities">Arts - Humanities</option>
-                          <option value="Vocational">Vocational</option>
+                          <option value="TN State - Maths Biology">TN State - Maths Biology</option>
+                          <option value="TN State - Maths Computer Science">TN State - Maths Computer Science</option>
+                          <option value="TN State - Pure Science (Botany/Zoology)">TN State - Pure Science (Botany/Zoology)</option>
+                          <option value="TN State - Commerce & Business Maths">TN State - Commerce & Business Maths</option>
+                          <option value="TN State - Commerce & Computer Applications">TN State - Commerce & Computer Applications</option>
+                          <option value="TN State - Commerce General">TN State - Commerce General</option>
+                          <option value="TN State - Arts/Humanities">TN State - Arts/Humanities</option>
+                          <option value="TN State - Vocational">TN State - Vocational</option>
+                          <option value="CBSE - Science (PCM)">CBSE - Science (PCM)</option>
+                          <option value="CBSE - Science (PCB)">CBSE - Science (PCB)</option>
+                          <option value="CBSE - Science (PCMB)">CBSE - Science (PCMB)</option>
+                          <option value="CBSE - Commerce with Maths">CBSE - Commerce with Maths</option>
+                          <option value="CBSE - Commerce without Maths">CBSE - Commerce without Maths</option>
+                          <option value="CBSE - Humanities/Arts">CBSE - Humanities/Arts</option>
                         </select>
                       </div>
                     )}
                     <div className={styles.inputGroup}><label className={styles.label}>Number of Questions</label><input className={styles.input} type="number" min="1" max="20" value={quizGenNumQ} onChange={e=>setQuizGenNumQ(e.target.value)} required /></div>
                     <div className={styles.inputGroup}><label className={styles.label}>Time Per Question (sec)</label><input className={styles.input} type="number" value={quizTime} onChange={e=>setQuizTime(e.target.value)} required /></div>
                     <div className={styles.fullWidth}>
-                      <button type="submit" className={styles.submitBtn} style={{background: 'var(--accent-secondary)', width: '100%', opacity: isGenerating ? 0.7 : 1}} disabled={isGenerating}>
-                        {isGenerating ? "Generating..." : "✨ Generate Quiz & Publish"}
+                      <button type="submit" className={styles.submitBtn} style={{background: 'var(--accent-secondary)', width: '100%', opacity: isGenerating ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem'}} disabled={isGenerating}>
+                        {isGenerating ? "Generating..." : <><Sparkles size={18} /> Generate Quiz & Publish</>}
                       </button>
                     </div>
                   </form>
@@ -1372,15 +1392,20 @@ export default function AdminDashboard() {
                     <label className={styles.label}>Target Department</label>
                     <select className={styles.input} value={notifDept} onChange={e=>setNotifDept(e.target.value)} required>
                       <option value="All">All Departments</option>
-                      <option value="Maths - Biology">Maths - Biology</option>
-                      <option value="Maths - Computer Science">Maths - Computer Science</option>
-                      <option value="Pure Science">Pure Science</option>
-                      <option value="Computer Applications">Computer Applications</option>
-                      <option value="Commerce - Business Maths">Commerce - Business Maths</option>
-                      <option value="Commerce - Computer Applications">Commerce - Computer Applications</option>
-                      <option value="Commerce - General">Commerce - General</option>
-                      <option value="Arts - Humanities">Arts - Humanities</option>
-                      <option value="Vocational">Vocational</option>
+                      <option value="TN State - Maths Biology">TN State - Maths Biology</option>
+                      <option value="TN State - Maths Computer Science">TN State - Maths Computer Science</option>
+                      <option value="TN State - Pure Science (Botany/Zoology)">TN State - Pure Science (Botany/Zoology)</option>
+                      <option value="TN State - Commerce & Business Maths">TN State - Commerce & Business Maths</option>
+                      <option value="TN State - Commerce & Computer Applications">TN State - Commerce & Computer Applications</option>
+                      <option value="TN State - Commerce General">TN State - Commerce General</option>
+                      <option value="TN State - Arts/Humanities">TN State - Arts/Humanities</option>
+                      <option value="TN State - Vocational">TN State - Vocational</option>
+                      <option value="CBSE - Science (PCM)">CBSE - Science (PCM)</option>
+                      <option value="CBSE - Science (PCB)">CBSE - Science (PCB)</option>
+                      <option value="CBSE - Science (PCMB)">CBSE - Science (PCMB)</option>
+                      <option value="CBSE - Commerce with Maths">CBSE - Commerce with Maths</option>
+                      <option value="CBSE - Commerce without Maths">CBSE - Commerce without Maths</option>
+                      <option value="CBSE - Humanities/Arts">CBSE - Humanities/Arts</option>
                     </select>
                   </div>
                 )}

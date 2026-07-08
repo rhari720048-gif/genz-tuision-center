@@ -57,10 +57,20 @@
   text-align: left;
 }
 
+.navItem svg {
+  color: var(--accent-primary);
+  transition: transform var(--transition-fast);
+  will-change: transform;
+}
+
 .navItem:hover {
-  background: rgba(17, 138, 178, 0.05);
+  background: rgba(59, 130, 246, 0.05); /* Very subtle blue background */
   color: var(--text-primary);
-  transform: translateX(5px);
+  transform: translateX(5px) translateZ(0); /* Zero Lag */
+}
+
+.navItem:hover svg {
+  transform: scale(1.15) translateZ(0); /* Micro interaction for the icon */
 }
 
 .navItem.active {
@@ -308,6 +318,8 @@
   transition: all var(--transition-fast);
   position: relative;
   overflow: hidden;
+  will-change: transform;
+  transform: translateZ(0);
 }
 
 .statIcon {
@@ -503,6 +515,8 @@
   box-shadow: 0 3px 10px rgba(0,0,0,0.04);
   position: relative;
   overflow: hidden;
+  will-change: transform;
+  transform: translateZ(0);
 }
 
 .dataRow::before {
@@ -759,13 +773,13 @@
     display: none;
   }
   .card {
-    padding: 1.5rem;
+    padding: 1.25rem;
   }
   .pageContent {
-    padding: 1rem;
+    padding: 0.5rem;
   }
   .statCard {
-    padding: 1.5rem;
+    padding: 1.25rem;
   }
   .actionGroup {
     flex-direction: column;

@@ -4,6 +4,7 @@ import { collection, getDocs, orderBy, query, doc, getDoc } from 'firebase/fires
 import { db, auth } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Folder, FileText, ArrowRight } from 'lucide-react';
 import styles from './page.module.css';
 
 export default function MaterialsPage() {
@@ -110,27 +111,31 @@ export default function MaterialsPage() {
         <div className={styles.contentGrid}>
           
           {/* FOLDERS SIDEBAR */}
-          <motion.div variants={itemVariants} className="glass-panel" style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', borderRadius: '12px' }}>
-            <h3 style={{ padding: '0.5rem', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)' }}>Subjects</h3>
+          <motion.div variants={itemVariants} className="glass-panel" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.8rem', borderRadius: '16px' }}>
+            <h3 style={{ padding: '0.5rem', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Folder size={20} className="text-gradient" /> Subjects
+            </h3>
             {subjects.map(sub => (
               <button 
                 key={sub} 
                 onClick={() => setActiveSubject(sub)}
                 style={{ 
-                  padding: '1rem', textAlign: 'left', background: activeSubject === sub ? 'var(--accent-primary)' : 'transparent',
-                  color: activeSubject === sub ? 'white' : 'var(--text-primary)', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold',
-                  transition: 'all var(--transition-fast)'
+                  display: 'flex', alignItems: 'center', gap: '0.8rem',
+                  padding: '1rem 1.2rem', textAlign: 'left', background: activeSubject === sub ? 'var(--accent-primary)' : 'transparent',
+                  color: activeSubject === sub ? 'white' : 'var(--text-primary)', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: '600',
+                  transition: 'all var(--transition-fast)',
+                  boxShadow: activeSubject === sub ? '0 4px 12px rgba(79, 70, 229, 0.3)' : 'none'
                 }}
               >
-                📁 {sub}
+                <Folder size={18} /> {sub}
               </button>
             ))}
           </motion.div>
 
           {/* FILES VIEW */}
-          <motion.div variants={itemVariants} style={{ display: 'grid', gap: '1rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <h2>{activeSubject} Resources</h2>
+          <motion.div variants={itemVariants} style={{ display: 'grid', gap: '1.5rem', alignContent: 'start' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+              <h2 style={{ fontSize: '1.8rem', letterSpacing: '-0.02em' }}>{activeSubject} Resources</h2>
             </div>
             <AnimatePresence mode="popLayout">
               {materials.filter(m => m.subject === activeSubject).map(m => (
@@ -139,22 +144,26 @@ export default function MaterialsPage() {
                   href={m.fileUrl} 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className={styles.materialCard}
+                  className={styles.materialItem}
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  whileHover={{ scale: 1.02, y: -4 }}
                   layout
                 >
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    <h3 style={{ color: 'var(--text-primary)', fontSize: '1.25rem', margin: 0 }}>{m.title}</h3>
-                    <div style={{ display: 'flex', gap: '1rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                      <span style={{ padding: '4px 8px', background: 'var(--bg-secondary)', borderRadius: '4px', border: '1px solid var(--border-color)' }}>Class {m.class}</span>
-                      <span style={{ padding: '4px 8px', background: 'var(--bg-secondary)', borderRadius: '4px', border: '1px solid var(--border-color)' }}>{m.type}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                    <div className={styles.subjectIcon} style={{ width: '40px', height: '40px', fontSize: '1.2rem' }}>
+                      <FileText size={20} />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                      <h3 style={{ color: 'var(--text-primary)', fontSize: '1.15rem', margin: 0, fontWeight: 700 }}>{m.title}</h3>
+                      <div style={{ display: 'flex', gap: '0.8rem', fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
+                        <span style={{ padding: '2px 8px', background: 'var(--bg-secondary)', borderRadius: '6px', border: '1px solid var(--border-color)' }}>Class {m.class}</span>
+                        <span style={{ padding: '2px 8px', background: 'var(--bg-secondary)', borderRadius: '6px', border: '1px solid var(--border-color)' }}>{m.type}</span>
+                      </div>
                     </div>
                   </div>
-                  <div style={{ background: 'var(--accent-primary)', color: 'white', padding: '0.5rem 1rem', borderRadius: '100px', fontWeight: '600', fontSize: '0.9rem', transition: 'all var(--transition-fast)' }}>
-                    Open File
+                  <div className={styles.downloadBtn}>
+                    Open <ArrowRight size={16} />
                   </div>
                 </motion.a>
               ))}

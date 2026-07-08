@@ -6,7 +6,7 @@ export default function Footer() {
     <footer className={styles.footer}>
       <div className={styles.footerGrid}>
         <div className={styles.footerBrand}>
-          <h2 className="text-gradient">GenZ Tuition</h2>
+          <img src="https://ik.imagekit.io/muthurasu/GEN%20Z/GEN_Z_LOGO__2_-removebg-preview.png.png?updatedAt=1782569180718" alt="GenZ Tuition Logo" style={{ height: '50px', marginBottom: '1rem', display: 'block' }} />
           <p>Empowering students with modern educational tools and expert guidance to achieve academic excellence.</p>
         </div>
         <div className={styles.footerLinks}>

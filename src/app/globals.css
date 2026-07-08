@@ -1,38 +1,38 @@
 :root {
   /* Hyper-Premium Minimalist Theme */
   --bg-primary: #ffffff; /* Absolute Pure White */
-  --bg-secondary: #fafafa; /* Barely off-white for subtle distinction */
+  --bg-secondary: #f8fafc; /* Slightly cooler off-white for modern feel */
   
-  --text-primary: #09090b; /* Pitch Black */
-  --text-secondary: #52525b; /* Elegant Slate Gray */
+  --text-primary: #0f172a; /* Deep Slate - softer than black */
+  --text-secondary: #64748b; /* Elegant cool gray */
   
   /* Singular Intense Accent */
-  --accent-primary: #4f46e5; /* Deep Premium Indigo */
-  --accent-primary-hover: #4338ca; 
-  --accent-secondary: #6366f1; /* Lighter Indigo */
-  --accent-glow: #818cf8;
+  --accent-primary: #3b82f6; /* Electric Blue instead of indigo for a fresher pro look */
+  --accent-primary-hover: #2563eb; 
+  --accent-secondary: #60a5fa; /* Lighter Blue */
+  --accent-glow: #93c5fd;
   
   --warning: #f59e0b; 
   --danger: #ef4444; 
   --success: #10b981; 
   
-  --border-color: rgba(0, 0, 0, 0.06); /* Invisible-like borders */
-  --border-color-focus: rgba(0, 0, 0, 0.15);
+  --border-color: rgba(15, 23, 42, 0.08); /* Crisp visible but invisible borders */
+  --border-color-focus: rgba(59, 130, 246, 0.3);
   
   --font-main: var(--font-main), 'Inter', sans-serif;
   --border-radius-sm: 12px;
-  --border-radius-md: 24px; /* Ultra smooth corners */
+  --border-radius-md: 20px; /* Ultra smooth corners */
   --border-radius-lg: 32px;
   
-  --transition-fast: 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-fast: 0.15s cubic-bezier(0.2, 0.8, 0.2, 1);
   --transition-normal: 0.4s cubic-bezier(0.16, 1, 0.3, 1); /* Custom spring-like easing */
   
-  /* Hyper-Premium Multi-Layered Shadows */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.03), 0 2px 4px rgba(0, 0, 0, 0.02);
-  --shadow-lg: 0 20px 40px -10px rgba(0,0,0,0.05), 0 10px 20px -5px rgba(0,0,0,0.03);
-  --shadow-xl: 0 50px 100px -20px rgba(50,50,93,0.08), 0 30px 60px -30px rgba(0,0,0,0.05); /* The "Stripe" Shadow */
-  --shadow-focus: 0 0 0 4px rgba(0, 0, 0, 0.1);
+  /* Hyper-Premium Multi-Layered Shadows (Stripe-like) */
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.05), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.05);
+  --shadow-xl: 0 25px 50px -12px rgba(15, 23, 42, 0.15); /* Soft, extremely large diffusion */
+  --shadow-focus: 0 0 0 4px rgba(59, 130, 246, 0.15);
 }
 
 * {
@@ -46,7 +46,7 @@ body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
   min-height: 100vh;
-  line-height: 1.8;
+  line-height: 1.7; /* Slightly taller for editorial feel */
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -56,8 +56,8 @@ body {
 h1, h2, h3, h4, h5, h6 {
   color: var(--text-primary);
   font-weight: 800;
-  letter-spacing: -0.04em; /* Tight, editorial tracking */
-  line-height: 1.1;
+  letter-spacing: -0.03em; /* Tight, editorial tracking */
+  line-height: 1.15;
 }
 
 a {
@@ -74,11 +74,13 @@ a {
   position: relative;
   overflow: hidden;
   transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+  will-change: transform; /* Zero-Lag GPU Acceleration */
+  transform: translateZ(0); /* Force hardware acceleration */
 }
 
 .glass-panel:hover {
   box-shadow: var(--shadow-lg);
-  transform: translateY(-4px);
+  transform: translateY(-4px) translateZ(0);
 }
 
 /* The Auroral Glow (Used sparingly) */
@@ -91,7 +93,7 @@ a {
 
 /* Hyper-Premium Buttons */
 .btn-primary {
-  background: var(--accent-primary); /* Deep Indigo */
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-primary-hover));
   color: #fff;
   border: none;
   padding: 1rem 2.5rem;
@@ -99,29 +101,30 @@ a {
   font-weight: 700;
   font-size: 1.05rem;
   cursor: pointer;
-  transition: all var(--transition-normal);
-  box-shadow: 0 10px 20px -10px rgba(79, 70, 229, 0.5);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+  box-shadow: 0 10px 20px -10px rgba(59, 130, 246, 0.5);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   letter-spacing: -0.01em;
   position: relative;
   overflow: hidden;
+  will-change: transform, box-shadow;
+  transform: translateZ(0);
 }
 
 .btn-primary::after {
   content: '';
   position: absolute;
   top: 0; left: 0; width: 100%; height: 100%;
-  background: linear-gradient(rgba(255,255,255,0.1), transparent);
+  background: linear-gradient(rgba(255,255,255,0.2), transparent);
   opacity: 0;
   transition: opacity var(--transition-fast);
 }
 
 .btn-primary:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 40px -10px rgba(79, 70, 229, 0.4);
-  background: var(--accent-primary-hover);
+  transform: translateY(-4px) translateZ(0);
+  box-shadow: 0 20px 40px -10px rgba(59, 130, 246, 0.6), 0 0 20px rgba(59, 130, 246, 0.4);
 }
 
 .btn-primary:hover::after {
@@ -129,34 +132,37 @@ a {
 }
 
 .btn-primary:active {
-  transform: translateY(1px);
+  transform: translateY(1px) translateZ(0);
+  box-shadow: 0 5px 10px -5px rgba(59, 130, 246, 0.5);
 }
 
 .btn-secondary {
   background: #ffffff;
   color: var(--text-primary);
-  border: 1px solid rgba(0,0,0,0.08);
+  border: 1px solid rgba(15, 23, 42, 0.1);
   padding: 1rem 2.5rem;
   border-radius: 100px;
   font-weight: 700;
   font-size: 1.05rem;
   cursor: pointer;
-  transition: all var(--transition-normal);
+  transition: all var(--transition-fast);
   box-shadow: var(--shadow-sm);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   letter-spacing: -0.01em;
+  will-change: transform, box-shadow;
+  transform: translateZ(0);
 }
 
 .btn-secondary:hover {
-  border-color: rgba(0,0,0,0.2);
-  transform: translateY(-4px);
+  border-color: rgba(15, 23, 42, 0.2);
+  transform: translateY(-4px) translateZ(0);
   box-shadow: var(--shadow-lg);
 }
 
 .btn-secondary:active {
-  transform: translateY(1px);
+  transform: translateY(1px) translateZ(0);
 }
 
 /* Forms */

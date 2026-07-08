@@ -96,7 +96,7 @@ export default function PlannerPage() {
 
       <div className={styles.plannerLayout}>
         <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className={styles.calendarSection}>
-          <div className="glass-panel" style={{ padding: '1.5rem', borderRadius: '12px' }}>
+          <div className={styles.plannerCard}>
              <CalendarReact 
                onChange={setDate} 
                value={date} 
@@ -106,7 +106,7 @@ export default function PlannerPage() {
         </motion.div>
 
         <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className={styles.tasksSection}>
-          <div className="glass-panel" style={{ padding: '2rem', borderRadius: '12px', minHeight: '400px' }}>
+          <div className={styles.plannerCard} style={{ minHeight: '400px' }}>
             <h2 style={{ marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
               Tasks for {date.toDateString()}
             </h2>
@@ -117,26 +117,26 @@ export default function PlannerPage() {
                 value={newTask} 
                 onChange={(e) => setNewTask(e.target.value)}
                 placeholder="What to study today?"
-                style={{ flex: 1, padding: '1rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.2)', color: 'white' }}
+                style={{ flex: 1, padding: '1rem 1.25rem', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)', background: '#ffffff', color: 'var(--text-primary)', boxShadow: 'var(--shadow-sm)', fontSize: '0.95rem' }}
               />
-              <button type="submit" className="btn-primary" style={{ padding: '0 1.5rem' }}>
+              <button type="submit" className="btn-primary" style={{ padding: '0 1.5rem', borderRadius: '12px' }}>
                 <Plus size={20} />
               </button>
             </form>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
               {todaysTasks.length === 0 ? (
                 <p style={{ color: 'var(--text-secondary)', textAlign: 'center', marginTop: '2rem' }}>No tasks scheduled for this day.</p>
               ) : (
                 todaysTasks.map(task => (
-                  <div key={task.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', borderLeft: task.completed ? '4px solid var(--success)' : '4px solid var(--accent-primary)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', opacity: task.completed ? 0.6 : 1, textDecoration: task.completed ? 'line-through' : 'none' }}>
-                      <button onClick={() => toggleComplete(task.id, task.completed)} style={{ background: 'none', border: 'none', color: task.completed ? 'var(--success)' : 'var(--text-secondary)', cursor: 'pointer' }}>
+                  <div key={task.id} className={`${styles.taskCard} ${task.completed ? styles.taskCardCompleted : ''}`} style={{ borderLeft: task.completed ? '4px solid var(--success)' : '4px solid var(--accent-primary)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', textDecoration: task.completed ? 'line-through' : 'none' }}>
+                      <button onClick={() => toggleComplete(task.id, task.completed)} style={{ background: 'none', border: 'none', color: task.completed ? 'var(--success)' : 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: 0 }}>
                         <CheckCircle size={24} />
                       </button>
-                      <span style={{ fontSize: '1.1rem' }}>{task.title}</span>
+                      <span style={{ fontSize: '1.05rem', fontWeight: 500, color: task.completed ? 'var(--text-secondary)' : 'var(--text-primary)' }}>{task.title}</span>
                     </div>
-                    <button onClick={() => deleteTask(task.id)} style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer' }}>
+                    <button onClick={() => deleteTask(task.id)} style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', padding: '0.5rem', display: 'flex', alignItems: 'center', borderRadius: '8px', transition: 'all 0.2s' }} onMouseOver={e => e.currentTarget.style.background = 'rgba(239,68,68,0.1)'} onMouseOut={e => e.currentTarget.style.background = 'none'}>
                       <Trash2 size={20} />
                     </button>
                   </div>

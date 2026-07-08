@@ -12,7 +12,7 @@
 .welcomeBanner {
   background: linear-gradient(135deg, rgba(79, 70, 229, 0.05), rgba(79, 70, 229, 0.02));
   border: 1px solid var(--border-color);
-  padding: 2.5rem;
+  padding: 1.5rem;
   border-radius: var(--border-radius-lg);
   margin-bottom: 1rem;
   text-align: center;
@@ -232,6 +232,8 @@
   box-shadow: 0 3px 10px rgba(0,0,0,0.04);
   position: relative;
   overflow: hidden;
+  will-change: transform;
+  transform: translateZ(0);
 }
 
 .markItem::before {
@@ -248,7 +250,7 @@
 }
 
 .markItem:hover {
-  transform: translateX(4px) translateY(-2px);
+  transform: translateX(4px) translateY(-2px) translateZ(0);
   box-shadow: 0 10px 25px rgba(0,0,0,0.08);
   border-color: rgba(79, 70, 229, 0.1);
   background: linear-gradient(to right, rgba(79, 70, 229, 0.02), #ffffff);
@@ -314,6 +316,8 @@
   box-shadow: 0 5px 15px rgba(0,0,0,0.03);
   position: relative;
   overflow: hidden;
+  will-change: transform;
+  transform: translateZ(0);
 }
 
 .folderCard::before {
@@ -327,7 +331,7 @@
 }
 
 .folderCard:hover {
-  transform: translateY(-8px);
+  transform: translateY(-8px) translateZ(0);
   box-shadow: 0 15px 35px rgba(79, 70, 229, 0.12);
   border-color: rgba(79, 70, 229, 0.2);
 }
@@ -340,10 +344,11 @@
   color: var(--accent-primary);
   margin-bottom: 0.2rem;
   transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  will-change: transform;
 }
 
 .folderCard:hover .folderIcon {
-  transform: scale(1.15) translateY(-2px);
+  transform: scale(1.15) translateY(-2px) translateZ(0);
   color: var(--accent-secondary);
 }
 

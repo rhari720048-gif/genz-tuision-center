@@ -4,6 +4,7 @@ import { collection, getDocs, query, where, addDoc, serverTimestamp, doc, getDoc
 import { db, auth } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { motion, AnimatePresence } from 'framer-motion';
+import { FileQuestion, BrainCircuit } from 'lucide-react';
 import styles from './page.module.css';
 
 const pageVariants = {
@@ -245,12 +246,19 @@ export default function QuizzesPage() {
 
       <motion.div variants={pageVariants} className={styles.quizGrid}>
         {quizzes.length === 0 ? <p>No active quizzes available for Class {userData?.class}.</p> : quizzes.map((q, i) => (
-          <motion.div key={i} variants={itemVariants} whileHover={{ scale: 1.02, y: -4 }} className="glass-panel" style={{ padding: '2rem', borderRadius: '12px' }}>
-            <h3 style={{ marginBottom: '1rem', color: 'var(--text-primary)', fontSize: '1.5rem' }}>{q.title}</h3>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
-              📝 {q.questions?.length || 0} Questions
-            </p>
-            <button className="btn-primary" onClick={() => startQuiz(q)}>Start Quiz</button>
+          <motion.div key={i} variants={itemVariants} className={styles.quizCard}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <div style={{ background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-glow))', width: '48px', height: '48px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', boxShadow: '0 4px 10px rgba(79, 70, 229, 0.3)' }}>
+                <BrainCircuit size={24} />
+              </div>
+              <h3 style={{ color: 'var(--text-primary)', fontSize: '1.4rem', fontWeight: 700, margin: 0, letterSpacing: '-0.02em' }}>{q.title}</h3>
+            </div>
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.95rem' }}>
+              <FileQuestion size={18} /> {q.questions?.length || 0} Questions
+            </div>
+            
+            <button className="btn-primary" style={{ width: '100%', marginTop: 'auto', padding: '0.8rem' }} onClick={() => startQuiz(q)}>Start Quiz</button>
           </motion.div>
         ))}
       </motion.div>

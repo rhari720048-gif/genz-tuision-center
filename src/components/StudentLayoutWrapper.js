@@ -56,7 +56,10 @@ export default function StudentLayoutWrapper({ children }) {
       {/* SIDEBAR */}
       <aside className={`${styles.sidebar} ${isMobileMenuOpen ? styles.open : ''}`}>
         <div className={styles.brand}>
-          <Link href="/" className="text-gradient" style={{ textDecoration: 'none' }}>GenZ Tuition</Link>
+          <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <img src="https://ik.imagekit.io/muthurasu/GEN%20Z/GEN_Z_LOGO__2_-removebg-preview.png.png?updatedAt=1782569180718" alt="GenZ Tuition Logo" style={{ height: '40px' }} />
+            <span style={{ color: '#2563eb', fontWeight: '800', fontSize: '1.25rem' }}>GenZ Tuition</span>
+          </Link>
           <button className={styles.hamburgerBtnClose} onClick={() => setIsMobileMenuOpen(false)}>
             <X size={24} />
           </button>
