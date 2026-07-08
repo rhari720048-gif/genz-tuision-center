@@ -38,7 +38,7 @@ You MUST respond strictly in the following JSON format. Do not add markdown bloc
     while (retries > 0) {
       try {
         const response = await ai.models.generateContent({
-          model: 'gemini-2.5-pro',
+          model: 'gemini-2.5-flash',
           contents: prompt,
           config: {
             systemInstruction: systemInstruction,
