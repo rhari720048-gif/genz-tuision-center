@@ -784,17 +784,14 @@
   }
 }
 
-
- . t a b B t n   { 
-     p a d d i n g :   0 . 7 5 r e m   1 . 5 r e m ; 
-     b o r d e r :   n o n e ; 
-     b o r d e r - r a d i u s :   8 p x ; 
-     f o n t - w e i g h t :   7 0 0 ; 
-     c u r s o r :   p o i n t e r ; 
-     t r a n s i t i o n :   a l l   0 . 2 s ; 
- } 
- . t a b B t n : h o v e r   { 
-     o p a c i t y :   0 . 8 ; 
- } 
-  
- 
+.tabBtn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.tabBtn:hover {
+  opacity: 0.8;
+}
