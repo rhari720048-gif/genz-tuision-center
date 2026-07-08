@@ -114,8 +114,7 @@
 .topHeader {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 1.5rem 2.5rem;
+  padding: 1rem 2.5rem;
   background: #ffffff;
   border-bottom: 1px solid var(--border-color);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);

@@ -1,7 +1,7 @@
 "use client";
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, BookOpen, FileQuestion, Trophy, Menu, X, Calendar } from 'lucide-react';
+import { LayoutDashboard, BookOpen, FileQuestion, Trophy, Menu, X, Calendar, LogOut } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
@@ -92,6 +92,22 @@ export default function StudentLayoutWrapper({ children }) {
           </Link>
         </div>
 
+        {user && (
+          <div style={{ marginTop: 'auto', padding: '1rem', borderTop: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
+               <div className={styles.avatarBtn} style={{width: '35px', height: '35px', fontSize: '1rem', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                 {userData?.name ? userData.name.charAt(0).toUpperCase() : (user.email ? user.email.charAt(0).toUpperCase() : 'S')}
+               </div>
+               <div style={{overflow: 'hidden'}}>
+                  <p className={styles.dropdownName} style={{fontSize: '0.9rem', marginBottom: 0, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden'}}>{userData?.name || 'Student'}</p>
+                  <p className={styles.dropdownEmail} style={{fontSize: '0.75rem', marginBottom: 0, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden'}}>{user.email}</p>
+               </div>
+            </div>
+            <button className={styles.dropdownLogout} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0.6rem 1rem' }} onClick={handleLogout}>
+               <LogOut size={16} /> Logout
+            </button>
+          </div>
+        )}
       </aside>
 
       {/* MAIN CONTENT */}
@@ -102,33 +118,6 @@ export default function StudentLayoutWrapper({ children }) {
           <button className={styles.hamburgerBtn} onClick={() => setIsMobileMenuOpen(true)}>
             <Menu size={24} />
           </button>
-          
-          <div className={styles.headerActions} style={{marginLeft: 'auto'}}>
-            {user && (
-              <div className={styles.profileMenuContainer}>
-                <button 
-                  className={styles.avatarBtn} 
-                  onClick={() => setDropdownOpen(!dropdownOpen)}
-                >
-                  {userData?.name ? userData.name.charAt(0).toUpperCase() : (user.email ? user.email.charAt(0).toUpperCase() : 'S')}
-                </button>
-                
-                {dropdownOpen && (
-                  <div className={styles.dropdownMenu}>
-                    <div className={styles.dropdownInfo}>
-                      <p className={styles.dropdownName}>{userData?.name || 'Student'}</p>
-                      <p className={styles.dropdownEmail}>{user.email}</p>
-                      {userData?.class && <p className={styles.dropdownClass}>Class {userData.class}</p>}
-                    </div>
-                    <div className={styles.dropdownDivider}></div>
-                    <button className={styles.dropdownLogout} onClick={handleLogout}>
-                       Logout
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
         </header>
 
         <div className={styles.pageContent}>

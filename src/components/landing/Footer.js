@@ -6,7 +6,10 @@ export default function Footer() {
     <footer className={styles.footer}>
       <div className={styles.footerGrid}>
         <div className={styles.footerBrand}>
-          <img src="https://ik.imagekit.io/muthurasu/GEN%20Z/GEN_Z_LOGO__2_-removebg-preview.png.png?updatedAt=1782569180718" alt="GenZ Tuition Logo" style={{ height: '50px', marginBottom: '1rem', display: 'block' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem' }}>
+            <img src="https://ik.imagekit.io/muthurasu/GEN%20Z/GEN_Z_LOGO__2_-removebg-preview.png.png?updatedAt=1782569180718" alt="GenZ Tuition Logo" style={{ height: '50px', display: 'block' }} />
+            <span style={{ color: '#2563eb', fontWeight: '800', fontSize: '1.5rem' }}>GenZ Tuition</span>
+          </div>
           <p>Empowering students with modern educational tools and expert guidance to achieve academic excellence.</p>
         </div>
         <div className={styles.footerLinks}>
@@ -22,9 +25,9 @@ export default function Footer() {
         <div className={styles.footerLinks}>
           <h3>Contact Us</h3>
           <ul>
-            <li>Email: info@genztuition.com</li>
-            <li>Phone: +91 98765 43210</li>
-            <li>Location: Chennai, Tamil Nadu</li>
+            <li>Email: info@genzneuralx.com</li>
+            <li>Phone: +91 7871803642</li>
+            <li>Location: sivakasi, Tamil Nadu</li>
           </ul>
         </div>
       </div>

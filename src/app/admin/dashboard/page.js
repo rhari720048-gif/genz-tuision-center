@@ -663,7 +663,10 @@ export default function AdminDashboard() {
       {/* SIDEBAR */}
       <aside className={`${styles.sidebar} ${isMobileMenuOpen ? styles.open : ''}`}>
         <div className={styles.brand} style={{display:'flex', justifyContent:'space-between', alignItems:'center', fontSize: '1.5rem'}}>
-          <img src="https://ik.imagekit.io/muthurasu/GEN%20Z/GEN_Z_LOGO__2_-removebg-preview.png.png?updatedAt=1782569180718" alt="GenZ Tuition Logo" style={{ height: '35px', objectFit: 'contain' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <img src="https://ik.imagekit.io/muthurasu/GEN%20Z/GEN_Z_LOGO__2_-removebg-preview.png.png?updatedAt=1782569180718" alt="GenZ Tuition Logo" style={{ height: '35px', objectFit: 'contain' }} />
+            <span style={{ color: '#2563eb', fontWeight: '800', fontSize: '1.25rem' }}>GenZ Tuition</span>
+          </div>
           <button className={styles.hamburgerBtn} onClick={() => setIsMobileMenuOpen(false)} style={{display: isMobileMenuOpen ? 'block' : 'none'}}>
             <X size={24} />
           </button>
@@ -677,6 +680,18 @@ export default function AdminDashboard() {
           <button className={`${styles.navItem} ${activeTab === 'quizzes' ? styles.active : ''}`} onClick={() => {setActiveTab('quizzes'); setIsMobileMenuOpen(false);}}><FileQuestion size={20}/> Quizzes</button>
           <button className={`${styles.navItem} ${activeTab === 'notifications' ? styles.active : ''}`} onClick={() => {setActiveTab('notifications'); setIsMobileMenuOpen(false);}}><Bell size={20}/> Alerts</button>
         </div>
+        <div style={{ marginTop: 'auto', padding: '1rem', borderTop: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
+             <div className={styles.avatarBtn} style={{width: '35px', height: '35px', fontSize: '1rem', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>A</div>
+             <div style={{overflow: 'hidden'}}>
+                <p className={styles.profileName} style={{fontSize: '0.9rem', marginBottom: 0}}>Admin Portal</p>
+                <p className={styles.profileRole} style={{fontSize: '0.75rem', marginBottom: 0}}>System Admin</p>
+             </div>
+          </div>
+          <button className={styles.dropdownLogout} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0.6rem 1rem' }} onClick={async () => { sessionStorage.removeItem('adminSession'); await signOut(auth); toast.success('Logged out successfully'); router.push('/admin/login'); }}>
+            <LogOut size={16} /> Logout
+          </button>
+        </div>
       </aside>
 
       {/* MAIN CONTENT */}
@@ -687,29 +702,6 @@ export default function AdminDashboard() {
           <button className={styles.hamburgerBtn} onClick={() => setIsMobileMenuOpen(true)}>
             <Menu size={24} />
           </button>
-          <div className={styles.headerActions}>
-            <div className={styles.profileMenuContainer}>
-              <button 
-                className={styles.avatarBtn} 
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-              >
-                A
-              </button>
-              
-              {dropdownOpen && (
-                <div className={styles.dropdownMenu}>
-                  <div className={styles.dropdownInfo}>
-                    <p className={styles.profileName} style={{display:'block'}}>Admin Portal</p>
-                    <p className={styles.profileRole} style={{display:'block'}}>System Admin</p>
-                  </div>
-                  <div className={styles.dropdownDivider}></div>
-                  <button className={styles.dropdownLogout} onClick={async () => { sessionStorage.removeItem('adminSession'); await signOut(auth); toast.success('Logged out successfully'); router.push('/admin/login'); }}>
-                     Logout
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
         </header>
 
         <div className={styles.pageContent}>

@@ -1,9 +1,30 @@
 "use client";
+import { useState, useEffect } from 'react';
 import { Users, BookOpen, UserCheck, Activity } from 'lucide-react';
 import { motion } from "framer-motion";
 import styles from "@/app/page.module.css";
+import { collection, getDocs, query, where } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 export default function StatsSection() {
+  const [studentCount, setStudentCount] = useState(0);
+  const [materialCount, setMaterialCount] = useState(0);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const studentSnap = await getDocs(query(collection(db, "users"), where("role", "==", "student")));
+        setStudentCount(studentSnap.size);
+        
+        const materialSnap = await getDocs(collection(db, "materials"));
+        setMaterialCount(materialSnap.size);
+      } catch (error) {
+        console.error("Error fetching stats:", error);
+      }
+    };
+    fetchStats();
+  }, []);
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -18,10 +39,10 @@ export default function StatsSection() {
   };
 
   const stats = [
-    { number: "1000+", label: "Enrolled Students", icon: <Users size={32} /> },
-    { number: "500+", label: "Premium Materials", icon: <BookOpen size={32} /> },
-    { number: "50+", label: "Expert Tutors", icon: <UserCheck size={32} /> },
-    { number: "99%", label: "Success Rate", icon: <Activity size={32} /> }
+    { number: studentCount.toString(), label: "Enrolled Students", icon: <Users size={32} /> },
+    { number: materialCount.toString(), label: "Premium Materials", icon: <BookOpen size={32} /> },
+    { number: "2", label: "Expert Tutors", icon: <UserCheck size={32} /> },
+    { number: "100%", label: "Success Rate", icon: <Activity size={32} /> }
   ];
 
   return (
@@ -33,7 +54,7 @@ export default function StatsSection() {
         variants={containerVariants}
         style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}
       >
-        <motion.h2 variants={itemVariants} className={styles.sectionTitle}>Trusted by Thousands.</motion.h2>
+        <motion.h2 variants={itemVariants} className={styles.sectionTitle}>Trusted by Students.</motion.h2>
         <motion.p variants={itemVariants} className={styles.sectionSubtitle}>We are more than just a tuition center. We are a complete educational ecosystem tailored for your success.</motion.p>
         
         <div className={styles.statsGrid}>

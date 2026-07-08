@@ -141,9 +141,11 @@
 
 .dropdownMenu {
   position: absolute;
-  bottom: 60px;
-  left: 0;
-  width: 200px;
+  top: 50px;
+  right: 0;
+  width: auto;
+  min-width: 200px;
+  max-width: 260px;
   background: #ffffff;
   border: 1px solid var(--border-color);
   border-radius: 12px;
@@ -183,8 +185,7 @@
 .topHeader {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 1.5rem 2.5rem;
+  padding: 1rem 2.5rem;
   background: #ffffff;
   border-bottom: 1px solid var(--border-color);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
@@ -218,18 +219,7 @@
   align-items: center;
 }
 
-.dropdownMenu {
-  position: absolute;
-  top: 50px;
-  right: 0;
-  width: 200px;
-  background: #ffffff;
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-  padding: 0.5rem;
-  z-index: 50;
-}
+/* dropdownMenu styling moved up */
 
 .dropdownInfo {
   padding: 0.8rem 1rem;
