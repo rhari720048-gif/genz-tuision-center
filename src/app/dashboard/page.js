@@ -90,6 +90,11 @@ export default function Dashboard() {
         const notifData = d.data();
         if (notifData.dismissedBy?.includes(uData.id)) return; // skip dismissed
 
+        // Target Filtering
+        if (notifData.targetStudentId && notifData.targetStudentId !== uData.id) return;
+        if (notifData.targetClass && notifData.targetClass !== 'All' && String(notifData.targetClass) !== String(uData.class)) return;
+        if (notifData.targetDepartment && notifData.targetDepartment !== 'All' && notifData.targetDepartment !== 'General' && String(notifData.targetClass) !== '10' && String(notifData.targetDepartment) !== String(uData.department) && String(uData.department) !== 'General') return;
+
         nList.push({ id: d.id, ...notifData });
         
         // Read Receipt logic

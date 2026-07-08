@@ -145,6 +145,8 @@ export default function AdminDashboard() {
 
   const [notifTitle, setNotifTitle] = useState('');
   const [notifMsg, setNotifMsg] = useState('');
+  const [notifClass, setNotifClass] = useState('All');
+  const [notifDept, setNotifDept] = useState('All');
   const [editNotif, setEditNotif] = useState(null);
 
   // Fees States
@@ -371,7 +373,7 @@ export default function AdminDashboard() {
         questions: data.questions || []
       });
       
-      await addDoc(collection(db, "notifications"), { title: `New AI Quiz: ${topic}`, message: `A new AI-generated quiz has been added for Class ${qClass}.`, createdAt: serverTimestamp() });
+      await addDoc(collection(db, "notifications"), { title: `New AI Quiz: ${topic}`, message: `A new AI-generated quiz has been added for Class ${qClass}.`, targetClass: qClass, targetDepartment: qClass === '10' ? 'General' : qDept, createdAt: serverTimestamp() });
       toast.success("AI Quiz Generated Successfully!", { id: loadingToast });
       fetchQuizzes();
       fetchNotifications();
@@ -393,7 +395,7 @@ export default function AdminDashboard() {
       toast.success("Material Updated");
     } else {
       await addDoc(collection(db, "materials"), { title: matTitle, fileUrl: matUrl, class: matClass, department: matClass === '10' ? 'General' : matDept, subject: matSubject, type: matType, uploadedAt: serverTimestamp() });
-      await addDoc(collection(db, "notifications"), { title: `New Material: ${matTitle}`, message: `A new ${matType} for ${matSubject} has been uploaded.`, createdAt: serverTimestamp() });
+      await addDoc(collection(db, "notifications"), { title: `New Material: ${matTitle}`, message: `A new ${matType} for ${matSubject} has been uploaded.`, targetClass: matClass, targetDepartment: matClass === '10' ? 'General' : matDept, createdAt: serverTimestamp() });
       
       if (autoGenMatQuiz) {
          await generateQuizFromTopic(matTitle, 5, matClass, matClass === '10' ? 'General' : matDept, 30);
@@ -442,7 +444,7 @@ export default function AdminDashboard() {
       toast.success("Quiz Updated");
     } else {
       await addDoc(collection(db, "quizzes"), { title: quizTitle, class: quizClass, department: quizClass === '10' ? 'General' : quizDept, timePerQ: Number(quizTime), createdAt: serverTimestamp(), questions: [] });
-      await addDoc(collection(db, "notifications"), { title: `New Quiz: ${quizTitle}`, message: `A new quiz has been created for Class ${quizClass}. Check your portal!`, createdAt: serverTimestamp() });
+      await addDoc(collection(db, "notifications"), { title: `New Quiz: ${quizTitle}`, message: `A new quiz has been created for Class ${quizClass}. Check your portal!`, targetClass: quizClass, targetDepartment: quizClass === '10' ? 'General' : quizDept, createdAt: serverTimestamp() });
       toast.success("Quiz Created & Notification Auto-Sent!");
     }
     setQuizTitle(''); fetchQuizzes(); fetchNotifications();
@@ -451,24 +453,28 @@ export default function AdminDashboard() {
   const handleNotification = async (e) => {
     e.preventDefault();
     if (editNotif) {
-      await updateDoc(doc(db, "notifications", editNotif.id), { title: notifTitle, message: notifMsg });
+      await updateDoc(doc(db, "notifications", editNotif.id), { title: notifTitle, message: notifMsg, targetClass: notifClass, targetDepartment: notifClass === '10' ? 'General' : notifDept });
       setEditNotif(null);
       toast.success("Notification Updated");
     } else {
-      await addDoc(collection(db, "notifications"), { title: notifTitle, message: notifMsg, createdAt: serverTimestamp() });
+      await addDoc(collection(db, "notifications"), { title: notifTitle, message: notifMsg, targetClass: notifClass, targetDepartment: notifClass === '10' ? 'General' : notifDept, createdAt: serverTimestamp() });
       
-      // Send Broadcast Email to ALL students
-      students.forEach(st => {
+      // Send Broadcast Email to TARGETED students
+      let targetStudents = students;
+      if (notifClass !== 'All') targetStudents = targetStudents.filter(s => String(s.class) === String(notifClass));
+      if (notifDept !== 'All' && notifClass !== '10') targetStudents = targetStudents.filter(s => s.department === 'General' || s.department === notifDept);
+
+      targetStudents.forEach(st => {
         sendEmailNotification(
           st.email,
           `GenZ Alert: ${notifTitle}`,
-          `<h3>Hello ${st.name},</h3><p>You have a new broadcast notification from the GenZ Admin:</p><blockquote style="border-left: 4px solid #06D6A0; padding-left: 10px;">${notifMsg}</blockquote>`
+          `<h3>Hello ${st.name},</h3><p>You have a new targeted notification from the GenZ Admin:</p><blockquote style="border-left: 4px solid #06D6A0; padding-left: 10px;">${notifMsg}</blockquote>`
         );
       });
 
-      toast.success("Notification Sent & Emailed to All Students!");
+      toast.success(`Notification Sent & Emailed to ${targetStudents.length} Students!`);
     }
-    setNotifTitle(''); setNotifMsg(''); fetchNotifications();
+    setNotifTitle(''); setNotifMsg(''); setNotifClass('All'); setNotifDept('All'); fetchNotifications();
   };
 
   const handleFeeUpdate = async (e) => {
@@ -538,6 +544,7 @@ export default function AdminDashboard() {
           batch.set(notifRef, {
             title: `URGENT: Fee Reminder - ${fee.month}`,
             message: `Dear ${student.name}, your fee of ₹${fee.amount} for ${fee.month} is pending. Please pay by ${fee.dueDate}.`,
+            targetStudentId: student.id,
             createdAt: serverTimestamp()
           });
           count++;
@@ -573,6 +580,7 @@ export default function AdminDashboard() {
             batch.set(notifRef, {
               title: `Warning: Low Attendance Alert`,
               message: `Dear ${st.name}, your current attendance is very low (${pct}%). Please maintain at least 75% attendance.`,
+              targetStudentId: st.id,
               createdAt: serverTimestamp()
             });
             count++;
@@ -1333,6 +1341,30 @@ export default function AdminDashboard() {
               <h2 className={styles.cardTitle}>{editNotif ? "Edit Notification" : "Send Manual Alert"}</h2>
               <form onSubmit={handleNotification} className={styles.formGrid}>
                 <div className={styles.inputGroup} style={{gridColumn: '1 / -1'}}><label className={styles.label}>Title</label><input className={styles.input} value={notifTitle} onChange={e=>setNotifTitle(e.target.value)} required /></div>
+                
+                <div className={styles.inputGroup}>
+                  <label className={styles.label}>Target Class</label>
+                  <select className={styles.input} value={notifClass} onChange={e=>setNotifClass(e.target.value)} required>
+                    <option value="All">All Classes</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                  </select>
+                </div>
+                {notifClass !== '10' && notifClass !== 'All' && (
+                  <div className={styles.inputGroup}>
+                    <label className={styles.label}>Target Department</label>
+                    <select className={styles.input} value={notifDept} onChange={e=>setNotifDept(e.target.value)} required>
+                      <option value="All">All Departments</option>
+                      <option value="Science">Science (Bio)</option>
+                      <option value="Computer Science">Computer Science</option>
+                      <option value="Commerce">Commerce</option>
+                      <option value="Arts">Arts</option>
+                      <option value="Vocational">Vocational</option>
+                    </select>
+                  </div>
+                )}
+
                 <div className={styles.inputGroup} style={{gridColumn: '1 / -1'}}><label className={styles.label}>Message</label><textarea className={styles.input} style={{height: '100px'}} value={notifMsg} onChange={e=>setNotifMsg(e.target.value)} required /></div>
                 <div className={styles.fullWidth} style={{ display: 'flex', gap: '1rem' }}>
                   <button type="submit" className={styles.submitBtn}>{editNotif ? "Update Notification" : "Send Broadcast"}</button>
