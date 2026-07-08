@@ -32,7 +32,7 @@ export class SecureAPIHandler {
     
     const status = rateLimit(`${this.#routeType}_${ip}`, this.#limit, this.#windowMs);
     if (!status.success) {
-      throw new Error("429: Too Many Requests");
+      throw new Error("429: LocalRateLimit - Too Many Requests");
     }
   }
 
@@ -64,7 +64,7 @@ export class SecureAPIHandler {
 
       return new Response(JSON.stringify({ 
         success: false, 
-        error: isRateLimit ? "Too Many Requests. Please try again later." : error.message 
+        error: isRateLimit ? (error.message.includes("LocalRateLimit") ? "Local Rate Limit Exceeded. Please slow down." : `AI Provider Limit Reached: ${error.message}`) : error.message 
       }), {
         status: statusCode,
         headers: { 'Content-Type': 'application/json' },

@@ -33,22 +33,32 @@ You MUST respond strictly in the following JSON format. Do not add markdown bloc
 
     const prompt = `Topic: ${topic}\nNumber of Questions: ${count}\nContext (optional): ${context}`;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-pro',
-      contents: prompt,
-      config: {
-        systemInstruction: systemInstruction,
-        temperature: 0.3,
-        responseMimeType: "application/json"
+    let retries = 3;
+    let delay = 2000;
+    while (retries > 0) {
+      try {
+        const response = await ai.models.generateContent({
+          model: 'gemini-2.5-pro',
+          contents: prompt,
+          config: {
+            systemInstruction: systemInstruction,
+            temperature: 0.3,
+            responseMimeType: "application/json"
+          }
+        });
+        const quizData = JSON.parse(response.text);
+        return quizData;
+      } catch (error) {
+        if (error.message && error.message.includes("429") && retries > 1) {
+          console.warn(`Gemini 429 hit. Retrying in ${delay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          delay *= 2;
+          retries--;
+          continue;
+        }
+        console.error("Gemini Error:", error);
+        throw new Error(error.message || "Failed to generate quiz properly. Please try again.");
       }
-    });
-
-    try {
-      const quizData = JSON.parse(response.text);
-      return quizData;
-    } catch (e) {
-      console.error("Failed to parse Gemini response as JSON", e);
-      throw new Error("Failed to generate quiz properly. Please try again.");
     }
   });
 }
