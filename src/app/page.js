@@ -2,7 +2,6 @@ import styles from "./page.module.css";
 import HeroSection from "@/components/landing/HeroSection";
 import StatsSection from "@/components/landing/StatsSection";
 import FeaturesSection from "@/components/landing/FeaturesSection";
-import CoursesSection from "@/components/landing/CoursesSection";
 import CtaSection from "@/components/landing/CtaSection";
 import Footer from "@/components/landing/Footer";
 
@@ -12,7 +11,6 @@ export default function Home() {
       <HeroSection />
       <StatsSection />
       <FeaturesSection />
-      <CoursesSection />
       <CtaSection />
       <Footer />
     </div>
