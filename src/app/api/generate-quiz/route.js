@@ -6,7 +6,7 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 const quizSecurityHandler = new SecureAPIHandler('QUIZ_GEN_API', 5, 60000); // 5 per minute
 
 export async function POST(request) {
-  return quizSecurityHandler.execute(request, ['topic', 'context', 'count'], async (payload) => {
+  return quizSecurityHandler.execute(request, ['topic', 'count'], async (payload) => {
     const { topic, context, count } = payload;
     
     const systemInstruction = `You are an expert educational content creator.

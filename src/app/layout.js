@@ -1,6 +1,5 @@
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/Navbar";
 
 const font = Plus_Jakarta_Sans({ 
   subsets: ["latin"],
@@ -14,6 +13,7 @@ export const metadata = {
   manifest: "/manifest.json",
 };
 
+import StudentLayoutWrapper from "@/components/StudentLayoutWrapper";
 import { Toaster } from "react-hot-toast";
 
 export default function RootLayout({ children }) {
@@ -21,8 +21,9 @@ export default function RootLayout({ children }) {
     <html lang="en" className={font.variable}>
       <body className={font.className}>
         <Toaster position="top-right" toastOptions={{ duration: 4000, style: { background: '#333', color: '#fff' } }} />
-        <Navbar />
-        {children}
+        <StudentLayoutWrapper>
+          {children}
+        </StudentLayoutWrapper>
       </body>
     </html>
   );
