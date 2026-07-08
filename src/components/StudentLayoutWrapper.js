@@ -89,45 +89,20 @@ export default function StudentLayoutWrapper({ children }) {
           </Link>
         </div>
 
-        <div className={styles.sidebarFooter}>
-          {user && (
-            <div className={styles.profileMenuContainer}>
-              <button 
-                className={styles.avatarBtn} 
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-              >
-                {userData?.name ? userData.name.charAt(0).toUpperCase() : (user.email ? user.email.charAt(0).toUpperCase() : 'S')}
-              </button>
-              <div style={{display: 'flex', flexDirection: 'column', marginLeft: '0.8rem', flex: 1}}>
-                 <span style={{fontSize: '0.9rem', fontWeight: 700}}>{userData?.name || 'Student'}</span>
-                 <span style={{fontSize: '0.75rem', color: 'var(--text-secondary)'}}>Class {userData?.class || 'N/A'}</span>
-              </div>
-              
-              {dropdownOpen && (
-                <div className={styles.dropdownMenu}>
-                  <button className={styles.dropdownLogout} onClick={handleLogout}>
-                     Logout
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
       </aside>
 
       {/* MAIN CONTENT */}
       <main className={styles.mainContent}>
-        {/* MOBILE TOP HEADER */}
+        
+        {/* TOP HEADER */}
         <header className={styles.topHeader}>
           <button className={styles.hamburgerBtn} onClick={() => setIsMobileMenuOpen(true)}>
             <Menu size={24} />
           </button>
-          <div className={styles.mobileBrand}>
-             <Link href="/" className="text-gradient" style={{ textDecoration: 'none', fontWeight: 800 }}>GenZ Tuition</Link>
-          </div>
-          <div className={styles.headerActions}>
+          
+          <div className={styles.headerActions} style={{marginLeft: 'auto'}}>
             {user && (
-              <div className={styles.profileMenuContainerMobile}>
+              <div className={styles.profileMenuContainer}>
                 <button 
                   className={styles.avatarBtn} 
                   onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -136,7 +111,7 @@ export default function StudentLayoutWrapper({ children }) {
                 </button>
                 
                 {dropdownOpen && (
-                  <div className={styles.dropdownMenuMobile}>
+                  <div className={styles.dropdownMenu}>
                     <div className={styles.dropdownInfo}>
                       <p className={styles.dropdownName}>{userData?.name || 'Student'}</p>
                       <p className={styles.dropdownEmail}>{user.email}</p>
