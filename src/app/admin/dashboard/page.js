@@ -136,6 +136,11 @@ export default function AdminDashboard() {
   const [quizClass, setQuizClass] = useState('10');
   const [quizTime, setQuizTime] = useState('30');
   const [editQuiz, setEditQuiz] = useState(null);
+  const [quizGenMode, setQuizGenMode] = useState('manual');
+  const [quizGenTopic, setQuizGenTopic] = useState('');
+  const [quizGenNumQ, setQuizGenNumQ] = useState(5);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [autoGenMatQuiz, setAutoGenMatQuiz] = useState(false);
 
   const [notifTitle, setNotifTitle] = useState('');
   const [notifMsg, setNotifMsg] = useState('');
@@ -342,6 +347,42 @@ export default function AdminDashboard() {
     }
   };
 
+
+
+  const generateQuizFromTopic = async (topic, numQ, qClass, qTime) => {
+    setIsGenerating(true);
+    const loadingToast = toast.loading(`Generating AI Quiz for ${topic}...`);
+    try {
+      const res = await fetch('/api/generate-quiz', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic, numQuestions: numQ })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Generation failed');
+      
+      const newQuizId = await addDoc(collection(db, "quizzes"), {
+        title: `AI Quiz: ${topic}`,
+        class: qClass,
+        timePerQ: Number(qTime),
+        createdAt: serverTimestamp(),
+        questions: data.questions || []
+      });
+      
+      await addDoc(collection(db, "notifications"), { title: `New AI Quiz: ${topic}`, message: `A new AI-generated quiz has been added for Class ${qClass}.`, createdAt: serverTimestamp() });
+      toast.success("AI Quiz Generated Successfully!", { id: loadingToast });
+      fetchQuizzes();
+      fetchNotifications();
+      return true;
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to generate AI Quiz: " + err.message, { id: loadingToast });
+      return false;
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   const handleMaterial = async (e) => {
     e.preventDefault();
     if (editMat) {
@@ -352,6 +393,10 @@ export default function AdminDashboard() {
       await addDoc(collection(db, "materials"), { title: matTitle, fileUrl: matUrl, class: matClass, department: matClass === '10' ? 'General' : matDept, subject: matSubject, type: matType, uploadedAt: serverTimestamp() });
       await addDoc(collection(db, "notifications"), { title: `New Material: ${matTitle}`, message: `A new ${matType} for ${matSubject} has been uploaded.`, createdAt: serverTimestamp() });
       
+      if (autoGenMatQuiz) {
+         await generateQuizFromTopic(matTitle, 5, matClass, 30);
+      }
+
       // Send Email to targeted students
       let targetStudents = students;
       if (matClass && matClass !== 'All') {
@@ -377,7 +422,14 @@ export default function AdminDashboard() {
 
       toast.success("Material Uploaded & Notification Auto-Sent!");
     }
-    setMatTitle(''); setMatUrl(''); fetchMaterials(); fetchNotifications();
+    setMatTitle(''); setMatUrl(''); setAutoGenMatQuiz(false); fetchMaterials(); fetchNotifications();
+  };
+
+  const handleAIQuizSubmit = async (e) => {
+    e.preventDefault();
+    if(!quizGenTopic) return toast.error("Please enter a topic");
+    await generateQuizFromTopic(quizGenTopic, quizGenNumQ, quizClass, quizTime);
+    setQuizGenTopic('');
   };
 
   const handleQuiz = async (e) => {
@@ -613,7 +665,6 @@ export default function AdminDashboard() {
           <button className={`${styles.navItem} ${activeTab === 'fees' ? styles.active : ''}`} onClick={() => {setActiveTab('fees'); setIsMobileMenuOpen(false);}}><Banknote size={20}/> Fees</button>
           <button className={`${styles.navItem} ${activeTab === 'materials' ? styles.active : ''}`} onClick={() => {setActiveTab('materials'); setIsMobileMenuOpen(false);}}><BookOpen size={20}/> Materials</button>
           <button className={`${styles.navItem} ${activeTab === 'quizzes' ? styles.active : ''}`} onClick={() => {setActiveTab('quizzes'); setIsMobileMenuOpen(false);}}><FileQuestion size={20}/> Quizzes</button>
-          <Link href="/admin/quiz-generator" className={styles.navItem} style={{ textDecoration: 'none' }}><BrainCircuit size={20} color="var(--accent-secondary)"/> AI Generator</Link>
           <button className={`${styles.navItem} ${activeTab === 'notifications' ? styles.active : ''}`} onClick={() => {setActiveTab('notifications'); setIsMobileMenuOpen(false);}}><Bell size={20}/> Alerts</button>
         </div>
       </aside>
@@ -1079,6 +1130,15 @@ export default function AdminDashboard() {
                 )}
                 <div className={styles.inputGroup}><label className={styles.label}>Subject</label><input className={styles.input} value={matSubject} onChange={e=>setMatSubject(e.target.value)} placeholder="e.g. Science or All" required /></div>
                 <div className={styles.inputGroup}><label className={styles.label}>Type</label><input className={styles.input} value={matType} onChange={e=>setMatType(e.target.value)} required /></div>
+                
+                <div className={styles.inputGroup} style={{flexDirection: 'row', alignItems: 'center', gap: '0.5rem', gridColumn: '1 / -1'}}>
+                  <input type="checkbox" id="autoGenQuiz" checked={autoGenMatQuiz} onChange={e=>setAutoGenMatQuiz(e.target.checked)} style={{width: '1.2rem', height: '1.2rem', accentColor: 'var(--accent-secondary)'}} />
+                  <label htmlFor="autoGenQuiz" className={styles.label} style={{margin:0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
+                    <BrainCircuit size={18} color="var(--accent-secondary)" /> 
+                    Auto-generate AI Quiz for this material
+                  </label>
+                </div>
+
                 <div className={styles.fullWidth} style={{ display: 'flex', gap: '1rem' }}>
                   <button type="submit" className={styles.submitBtn}>{editMat ? "Update Material" : "Upload & Notify"}</button>
                   {editMat && <button type="button" className={styles.submitBtn} style={{background:'var(--bg-secondary)', color:'var(--text-primary)', border: '1px solid var(--border-color)'}} onClick={()=>{setEditMat(null); setMatTitle(''); setMatUrl('');}}>Cancel</button>}
@@ -1095,6 +1155,7 @@ export default function AdminDashboard() {
                   <div key={m.id} className={styles.dataRow} style={{gridTemplateColumns: '2fr 1fr 1fr auto'}}>
                     <div className={styles.dataMain}>{m.title}</div><div className={styles.dataSub}>Class {m.class} {m.department && m.department !== 'General' ? `(${m.department})` : ''}</div><div className={styles.dataSub}>{m.subject} • {m.type}</div>
                     <div className={styles.actionGroup}>
+                      <button className={styles.editBtn} style={{background: 'rgba(6, 214, 160, 0.1)', color: 'var(--accent-secondary)'}} onClick={() => generateQuizFromTopic(m.title, 5, m.class, 30)} disabled={isGenerating}>🤖 AI Quiz</button>
                       <button className={styles.editBtn} onClick={()=>{setEditMat(m); setMatTitle(m.title); setMatUrl(m.fileUrl); setMatClass(m.class); setMatDept(m.department || 'All'); setMatSubject(m.subject); setMatType(m.type);}}>Edit</button>
                       <button className={styles.deleteBtn} onClick={async ()=>{ await deleteDoc(doc(db, "materials", m.id)); fetchMaterials(); }}>Delete</button>
                     </div>
@@ -1110,16 +1171,49 @@ export default function AdminDashboard() {
           <motion.div initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} transition={{duration:0.3}}>
             <div className={styles.pageHeader}><h1 className={styles.pageTitle}>Quiz Manager</h1></div>
             <div className={styles.card}>
-              <h2 className={styles.cardTitle}>{editQuiz ? "Edit Quiz" : "Create New Quiz"}</h2>
-              <form onSubmit={handleQuiz} className={styles.formGrid}>
-                <div className={styles.inputGroup}><label className={styles.label}>Title</label><input className={styles.input} value={quizTitle} onChange={e=>setQuizTitle(e.target.value)} required /></div>
-                <div className={styles.inputGroup}><label className={styles.label}>Class</label><input className={styles.input} value={quizClass} onChange={e=>setQuizClass(e.target.value)} required /></div>
-                <div className={styles.inputGroup}><label className={styles.label}>Time Per Question</label><input className={styles.input} type="number" value={quizTime} onChange={e=>setQuizTime(e.target.value)} required /></div>
-                <div className={styles.fullWidth} style={{ display: 'flex', gap: '1rem' }}>
-                  <button type="submit" className={styles.submitBtn}>{editQuiz ? "Update Quiz" : "Create & Notify"}</button>
-                  {editQuiz && <button type="button" className={styles.submitBtn} style={{background:'var(--bg-secondary)', color:'var(--text-primary)', border: '1px solid var(--border-color)'}} onClick={()=>{setEditQuiz(null); setQuizTitle('');}}>Cancel</button>}
-                </div>
-              </form>
+              <div style={{display: 'flex', gap: '1rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem'}}>
+                <button 
+                  className={styles.tabBtn} 
+                  style={{background: quizGenMode === 'manual' ? 'var(--accent-primary)' : 'transparent', color: quizGenMode === 'manual' ? 'white' : 'var(--text-secondary)'}}
+                  onClick={() => setQuizGenMode('manual')}
+                >Manual Entry</button>
+                <button 
+                  className={styles.tabBtn} 
+                  style={{background: quizGenMode === 'ai' ? 'var(--accent-secondary)' : 'transparent', color: quizGenMode === 'ai' ? 'white' : 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.5rem'}}
+                  onClick={() => setQuizGenMode('ai')}
+                ><BrainCircuit size={18} /> Auto-Generate with AI</button>
+              </div>
+
+              {quizGenMode === 'manual' ? (
+                <>
+                  <h2 className={styles.cardTitle}>{editQuiz ? "Edit Quiz" : "Create New Quiz"}</h2>
+                  <form onSubmit={handleQuiz} className={styles.formGrid}>
+                    <div className={styles.inputGroup}><label className={styles.label}>Title</label><input className={styles.input} value={quizTitle} onChange={e=>setQuizTitle(e.target.value)} required /></div>
+                    <div className={styles.inputGroup}><label className={styles.label}>Class</label><input className={styles.input} value={quizClass} onChange={e=>setQuizClass(e.target.value)} required /></div>
+                    <div className={styles.inputGroup}><label className={styles.label}>Time Per Question</label><input className={styles.input} type="number" value={quizTime} onChange={e=>setQuizTime(e.target.value)} required /></div>
+                    <div className={styles.fullWidth} style={{ display: 'flex', gap: '1rem' }}>
+                      <button type="submit" className={styles.submitBtn}>{editQuiz ? "Update Quiz" : "Create & Notify"}</button>
+                      {editQuiz && <button type="button" className={styles.submitBtn} style={{background:'var(--bg-secondary)', color:'var(--text-primary)', border: '1px solid var(--border-color)'}} onClick={()=>{setEditQuiz(null); setQuizTitle('');}}>Cancel</button>}
+                    </div>
+                  </form>
+                </>
+              ) : (
+                <>
+                  <h2 className={styles.cardTitle}>AI Quiz Generator</h2>
+                  <p style={{color: 'var(--text-secondary)', marginBottom: '1.5rem'}}>Enter any topic and AI will instantly generate a full multiple choice quiz for you.</p>
+                  <form onSubmit={handleAIQuizSubmit} className={styles.formGrid}>
+                    <div className={styles.inputGroup} style={{gridColumn: '1 / -1'}}><label className={styles.label}>Topic / Title</label><input className={styles.input} value={quizGenTopic} onChange={e=>setQuizGenTopic(e.target.value)} placeholder="e.g. Photosynthesis, World War 2, Python Basics..." required /></div>
+                    <div className={styles.inputGroup}><label className={styles.label}>Target Class</label><input className={styles.input} value={quizClass} onChange={e=>setQuizClass(e.target.value)} required /></div>
+                    <div className={styles.inputGroup}><label className={styles.label}>Number of Questions</label><input className={styles.input} type="number" min="1" max="20" value={quizGenNumQ} onChange={e=>setQuizGenNumQ(e.target.value)} required /></div>
+                    <div className={styles.inputGroup}><label className={styles.label}>Time Per Question (sec)</label><input className={styles.input} type="number" value={quizTime} onChange={e=>setQuizTime(e.target.value)} required /></div>
+                    <div className={styles.fullWidth}>
+                      <button type="submit" className={styles.submitBtn} style={{background: 'var(--accent-secondary)', width: '100%', opacity: isGenerating ? 0.7 : 1}} disabled={isGenerating}>
+                        {isGenerating ? "Generating..." : "✨ Generate Quiz & Publish"}
+                      </button>
+                    </div>
+                  </form>
+                </>
+              )}
             </div>
             <div className={styles.card}>
               <div className={styles.tableHeader}>
