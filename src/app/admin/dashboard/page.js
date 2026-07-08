@@ -356,7 +356,7 @@ export default function AdminDashboard() {
       const res = await fetch('/api/generate-quiz', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic, numQuestions: numQ })
+        body: JSON.stringify({ topic, context: '', count: numQ })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Generation failed');
