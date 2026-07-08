@@ -55,30 +55,36 @@
 .navItem {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1rem 1.2rem;
+  gap: 1.2rem;
+  padding: 1rem 1.4rem;
   font-size: 1.05rem;
   font-weight: 700;
   color: var(--text-secondary);
-  border-radius: var(--border-radius-sm);
-  transition: all var(--transition-fast);
+  border-radius: 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   background: transparent;
   border: 1px solid transparent;
   text-align: left;
   text-decoration: none;
+  position: relative;
+  overflow: hidden;
 }
 
 .navItem:hover {
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-  transform: translateX(4px);
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.05), rgba(6, 214, 160, 0.05));
+  color: var(--accent-primary);
+  border-color: rgba(79, 70, 229, 0.15);
+  transform: translateX(6px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.02);
 }
 
 .navItem.active {
-  background: var(--accent-primary);
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
   color: #ffffff;
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+  border-color: transparent;
+  box-shadow: 0 10px 20px rgba(79, 70, 229, 0.25);
+  transform: scale(1.02);
 }
 
 .navItem.active .navIcon {
@@ -90,17 +96,30 @@
   flex-shrink: 0;
 }
 
-/* Sidebar Footer */
 .sidebarFooter {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border-color);
+  margin-top: auto;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(0,0,0,0.05);
 }
 
 .profileMenuContainer {
   position: relative;
   display: flex;
   align-items: center;
+  padding: 0.8rem;
+  background: linear-gradient(135deg, #ffffff, #f8fafc);
+  border-radius: 20px;
+  border: 1px solid rgba(79, 70, 229, 0.1);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.profileMenuContainer:hover {
+  background: #ffffff;
+  border-color: rgba(79, 70, 229, 0.3);
+  box-shadow: 0 10px 25px rgba(79, 70, 229, 0.15);
+  transform: translateY(-3px);
 }
 
 .avatarBtn {
