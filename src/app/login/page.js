@@ -1,4 +1,5 @@
 "use client";
+import Link from 'next/link';
 import { useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
@@ -59,6 +60,9 @@ export default function StudentLogin() {
     <div className={styles.loginPage}>
       <div className={`glass-panel ${styles.loginCard}`}>
         <div>
+          <Link href="/" style={{ color: 'var(--text-secondary)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', fontSize: '0.9rem', fontWeight: '500' }}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg> Back to Home
+          </Link>
           <h1 className={`${styles.title} text-gradient`}>Student Login</h1>
           <p className={styles.subtitle}>Enter your portal credentials</p>
         </div>

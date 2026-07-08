@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { SecureAPIHandler } from '@/lib/SecureAPIHandler';
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-const quizSecurityHandler = new SecureAPIHandler('QUIZ_GEN_API', 20, 60000); // 20 per minute
+const quizSecurityHandler = new SecureAPIHandler('QUIZ_GEN_API', 5, 60000); // 5 per minute
 
 export async function POST(request) {
   return quizSecurityHandler.execute(request, ['topic', 'count'], async (payload) => {
