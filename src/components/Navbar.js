@@ -53,11 +53,7 @@ export default function Navbar() {
   return (
     <div className={styles.navbarWrapper}>
       <nav className={`${styles.navbar}`}>
-        <div className={styles.logo}>
-        <Link href="/" className="text-gradient">
-          GenZ Tuition
-        </Link>
-      </div>
+
       
       {showStudentLinks && (
         <div className={styles.links}>
@@ -119,6 +115,12 @@ export default function Navbar() {
           )}
         </div>
       )}
+
+      <div className={styles.logo}>
+        <Link href="/" className="text-gradient" style={{marginRight: 0, marginLeft: '2rem'}}>
+          GenZ Tuition
+        </Link>
+      </div>
     </nav>
     </div>
   );
